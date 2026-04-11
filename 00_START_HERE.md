@@ -25,6 +25,7 @@ That's it. Everything you need for Phase 1 implementation is inside this reposit
 
 | Order | Folder / File | Purpose |
 |---|---|---|
+| 0 | **`Project Mission and Origin Story.md`** | Origin story, project mission, architectural summary, and deferred phase vision |
 | 1 | **`00_START_HERE.md`** (this file) | Reading order, canonical file list, ignore list |
 | 2 | `01_Product_Strategy/Roadie Product Design Document.md` | Product vision, user scenarios, scope |
 | 3 | `01_Product_Strategy/Roadie Development Roadmap.md` | Milestone-by-milestone delivery plan |

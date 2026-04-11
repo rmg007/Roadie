@@ -51,8 +51,10 @@ That's it. Everything you need for Phase 1 implementation is inside this reposit
 | 24 | `04_Implementation_Specs_Phase_1.5/Learning Database Specification.md` | SQLite learning store |
 | 24.5 | `04_Implementation_Specs_Phase_1.5/Codebase Dictionary Specification.md` (M24) | Entity extraction, `codebase_entities` SQL schema, `DictionaryGenerator`, prompt injection integration |
 | 25 | `05_Implementation_Specs_Phase_2/Phase 2 Implementation Specification Master In.md` | Standalone MCP server phase |
-| 26 | `08_Integration_and_Testing/End-to-End Integration Scenarios.md` | E2E test scenarios |
-| 27 | `08_Integration_and_Testing/Testing, Error Handling & Security.md` | Error taxonomy + security baseline |
+| 26 | `09_Implementation_Specs_Phase_2.5/Phase 2.5 Adaptive Learning and Self-Improvement.md` | Adaptive Learning phase (DESIGN ONLY, DO NOT BUILD UNTIL 2028) |
+| 27 | `10_Implementation_Specs_Phase_3/Phase 3 Teams and Enterprise.md` | Teams & Enterprise phase (VISION ONLY, DO NOT BUILD UNTIL 2029) |
+| 28 | `08_Integration_and_Testing/End-to-End Integration Scenarios.md` | E2E test scenarios |
+| 29 | `08_Integration_and_Testing/Testing, Error Handling & Security.md` | Error taxonomy + security baseline |
 
 ---
 

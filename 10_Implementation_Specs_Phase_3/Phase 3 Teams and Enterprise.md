@@ -1,9 +1,8 @@
 # Phase 3 - Teams and Enterprise
 
-> **WARNING / STATUS:** VISION - EXPLICITLY DEFERRED
-> **DO NOT BUILD THIS BEFORE 2029.**
-> Do not design in detail until Phase 2.5 proves solo value.
+## Roadie for Organizations
 
+**Status:** VISION - Explicitly deferred. Do not design in detail until Phase 2.5 proves solo value.
 **Prerequisite:** Phase 2.5 shipped, 100+ solo developer installs, validated product-market fit
 **Target:** Extend Roadie from a solo developer tool to a team-wide AI configuration platform
 **Estimated Build Time:** 40-60 hours (largest phase)

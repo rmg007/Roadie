@@ -68,7 +68,8 @@ Every module is referenced by these IDs across the corpus. If a stale file refer
 | **M21** | Edit Tracker | `04_Implementation_Specs_Phase_1.5/Edit Tracker Specification.md` |
 | **M22** | Section Manager | `04_Implementation_Specs_Phase_1.5/Section Manager Specification.md` |
 | **M23** | Learning Database | `04_Implementation_Specs_Phase_1.5/Learning Database Specification.md` |
-| M20, M24–M27 | 8 file generators (Copilot Instructions, Path Instructions, Agent Definitions, Skills, Hooks, Workflows, Templates, AGENTS.md) | `02_Technical_Architecture/File-Specific Generator Templates All 8.md` |
+| **M24** | Codebase Dictionary | `04_Implementation_Specs_Phase_1.5/Codebase Dictionary Specification.md` |
+| M25–M32 | 8 file generators (Copilot Instructions, Path Instructions, Agent Definitions, Skills, Hooks, Workflows, Templates, AGENTS.md) | `02_Technical_Architecture/File-Specific Generator Templates All 8.md` |
 
 > **Historical note:** Archived BLOCKING documents at `04_Implementation_Specs_Phase_1.5/ARCHIVED_BLOCKING/` refer to Project Model Persistence as "M14". **That number is obsolete.** The canonical ID is **M16**. Do not implement from any archived BLOCKING file.
 

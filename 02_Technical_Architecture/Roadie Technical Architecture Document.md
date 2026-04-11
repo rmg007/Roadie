@@ -434,6 +434,50 @@ CREATE TABLE developer_preferences (
 );
 ```
 
+### 3.1.6 Codebase Dictionary Tables
+
+```sql
+CREATE TABLE IF NOT EXISTS codebase_entities (
+  id                  INTEGER PRIMARY KEY AUTOINCREMENT,
+  name                TEXT    NOT NULL,
+  kind                TEXT    NOT NULL CHECK(kind IN (
+                        'function','class','interface','type','enum',
+                        'constant','route','model','component')),
+  file_path           TEXT    NOT NULL,
+  line_number         INTEGER,
+  signature           TEXT,
+  purpose             TEXT    DEFAULT '',
+  is_exported         INTEGER NOT NULL DEFAULT 1,
+  created_by_workflow TEXT,
+  created_at          TEXT    NOT NULL DEFAULT (datetime('now')),
+  updated_at          TEXT    NOT NULL DEFAULT (datetime('now')),
+  UNIQUE(file_path, name, kind)
+);
+
+CREATE INDEX IF NOT EXISTS idx_entities_file
+  ON codebase_entities(file_path);
+CREATE INDEX IF NOT EXISTS idx_entities_name
+  ON codebase_entities(name);
+
+CREATE TABLE IF NOT EXISTS entity_relationships (
+  id           INTEGER PRIMARY KEY AUTOINCREMENT,
+  source_id    INTEGER NOT NULL REFERENCES codebase_entities(id) ON DELETE CASCADE,
+  target_id    INTEGER NOT NULL REFERENCES codebase_entities(id) ON DELETE CASCADE,
+  relationship TEXT    NOT NULL,
+  UNIQUE(source_id, target_id, relationship)
+);
+
+CREATE TABLE IF NOT EXISTS entity_modifications (
+  id                  INTEGER PRIMARY KEY AUTOINCREMENT,
+  entity_id           INTEGER NOT NULL REFERENCES codebase_entities(id) ON DELETE CASCADE,
+  workflow_type       TEXT,
+  step_id             TEXT,
+  original_prompt     TEXT,
+  change_description  TEXT,
+  modified_at         TEXT    NOT NULL DEFAULT (datetime('now'))
+);
+```
+
 ## 3.2 In-Memory Model Structure
 
 ```tsx

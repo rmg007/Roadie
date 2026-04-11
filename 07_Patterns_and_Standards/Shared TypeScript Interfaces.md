@@ -491,6 +491,67 @@ type ChatResponseStream = vscode.ChatResponseStream;
 
 ---
 
+## Codebase Dictionary Types
+
+```tsx
+export interface CodeEntity {
+  name: string;
+  kind: 'function' | 'class' | 'interface' | 'type' | 'enum'
+      | 'constant' | 'route' | 'model' | 'component';
+  filePath: string;
+  lineNumber: number;
+  signature: string;
+  purpose: string;
+  isExported: boolean;
+  createdByWorkflow: string;
+  createdAt: string;  // ISO 8601
+}
+
+export interface EntityRelationship {
+  sourceEntityName: string;
+  sourceFilePath: string;
+  targetEntityName: string;
+  targetFilePath: string;
+  relationship: string;
+}
+
+export interface RecordEntitiesParams {
+  filePath: string;
+  fileContent: string;
+  workflowType: string;
+  stepId: string;
+  originalPrompt: string;
+}
+
+export interface EntityWriter {
+  recordEntities(params: RecordEntitiesParams): Promise<void>;
+  invalidateFile(filePath: string): Promise<void>;
+}
+
+export interface DictionaryContextOptions {
+  relevantPaths?: string[];
+  maxChars?: number;
+  includeKinds?: CodeEntity['kind'][];
+}
+
+export interface DictionaryContext {
+  summary: string;
+  entityCount: number;
+  truncated: boolean;
+}
+
+export interface DictionaryQuery {
+  getEntitiesInFiles(filePaths: string[]): Promise<CodeEntity[]>;
+  getDependents(entityName: string, filePath: string): Promise<CodeEntity[]>;
+  getDependencies(entityName: string, filePath: string): Promise<CodeEntity[]>;
+  search(query: string, limit?: number): Promise<CodeEntity[]>;
+  toContext(options?: DictionaryContextOptions): Promise<DictionaryContext>;
+  getEntityCount(): Promise<number>;
+}
+```
+
+---
+
 ## Summary
 
 - **Import Path:** `src/types.ts`

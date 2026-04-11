@@ -789,6 +789,60 @@ export type FileChange               = z.infer<typeof FileChangeSchema>;
 export type EditRecord               = z.infer<typeof EditRecordSchema>;
 export type GeneratedFileType        = z.infer<typeof GeneratedFileTypeSchema>;
 // MCP tool I/O types: see the MCP Tool section above — each has its own exported type.
+
+const CodeEntitySchema = z.object({
+  name: z.string().min(1),
+  kind: z.enum(['function', 'class', 'interface', 'type', 'enum', 'constant', 'route', 'model', 'component']),
+  filePath: z.string().min(1),
+  lineNumber: z.number().int().nonnegative(),
+  signature: z.string(),
+  purpose: z.string(),
+  isExported: z.boolean(),
+  createdByWorkflow: z.string(),
+  createdAt: z.string().datetime({ offset: true }),
+});
+
+const EntityRelationshipSchema = z.object({
+  sourceEntityName: z.string().min(1),
+  sourceFilePath: z.string().min(1),
+  targetEntityName: z.string().min(1),
+  targetFilePath: z.string().min(1),
+  relationship: z.string().min(1),
+});
+
+const RecordEntitiesParamsSchema = z.object({
+  filePath: z.string().min(1),
+  fileContent: z.string().min(1),
+  workflowType: z.string().min(1),
+  stepId: z.string().min(1),
+  originalPrompt: z.string().min(1),
+});
+
+const DictionaryContextOptionsSchema = z.object({
+  relevantPaths: z.array(z.string()).optional(),
+  maxChars: z.number().int().positive().optional(),
+  includeKinds: z.array(z.enum(['function', 'class', 'interface', 'type', 'enum', 'constant', 'route', 'model', 'component'])).optional(),
+});
+
+const DictionaryContextSchema = z.object({
+  summary: z.string(),
+  entityCount: z.number().int().nonnegative(),
+  truncated: z.boolean(),
+});
+
+export const CodebaseDictionarySchemas = {
+  CodeEntitySchema,
+  EntityRelationshipSchema,
+  RecordEntitiesParamsSchema,
+  DictionaryContextOptionsSchema,
+  DictionaryContextSchema,
+};
+
+export type CodeEntity                 = z.infer<typeof CodeEntitySchema>;
+export type EntityRelationship         = z.infer<typeof EntityRelationshipSchema>;
+export type RecordEntitiesParams       = z.infer<typeof RecordEntitiesParamsSchema>;
+export type DictionaryContextOptions   = z.infer<typeof DictionaryContextOptionsSchema>;
+export type DictionaryContext          = z.infer<typeof DictionaryContextSchema>;
 ```
 
 ---

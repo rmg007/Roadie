@@ -88,6 +88,20 @@
 - **5+ integration tests with real file system pass**
 - **Zero data loss in any scenario** (human edits never discarded)
 
+### Step 4.5: Codebase Dictionary (M24)
+
+**Estimated time:** 4-6 hours
+
+**Depends on:** M16, M20
+
+**Creates:** `src/dictionary/entity-writer.ts`, `src/dictionary/dictionary-query.ts`, `src/dictionary/dictionary-generator.ts`
+
+**Verification:**
+
+- Dictionary entries appear in SQLite after mock workflow
+- `.github/codebase-dictionary.md` is generated
+- Queries return expected entities and relationships
+
 ### Step 5: File Generator Manager (M19)
 
 **Estimated time:** 4-5 hours

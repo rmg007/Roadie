@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep -E \"\\\\.\\(md\\)$\")",
+      "Bash(find \"C:\\\\dev\\\\Roadie\\\\Roadie_Project_Documentations_Only\" -name \"*.md\" -exec grep -l \"test dataset\\\\|test suite.*100\\\\|reference.*prompts\" {} \\\\;)",
+      "Bash(grep -l \"_alt.md\" \"C:\\\\dev\\\\Roadie\\\\Roadie_Project_Documentations_Only\"/**/*.md)",
+      "Bash(wc -l \"C:\\\\dev\\\\Roadie\\\\Roadie_Project_Documentations_Only\"/*.md)"
+    ]
+  }
+}

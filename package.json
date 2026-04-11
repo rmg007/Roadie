@@ -1,0 +1,29 @@
+{
+  "name": "roadie_project_documentations_only",
+  "version": "1.0.0",
+  "description": "Documentation-only workspace for the Roadie VS Code extension project. This package.json mirrors the runtime dependencies declared in 02_Technical_Architecture/Extension Manifest & Configuration.md — edit both in lockstep.",
+  "private": true,
+  "license": "UNLICENSED",
+  "scripts": {
+    "test": "echo \"Error: no test specified — this workspace contains documentation only. See 00_START_HERE.md.\" && exit 1"
+  },
+  "dependencies": {
+    "better-sqlite3": "^9.4.3",
+    "fast-glob": "^3.3.0",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.0",
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.84.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "@vscode/test-cli": "^0.0.4",
+    "@vscode/test-electron": "^2.3.0",
+    "eslint": "^8.50.0",
+    "prettier": "^3.0.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.2.0",
+    "vitest": "^0.34.0"
+  }
+}

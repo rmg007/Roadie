@@ -118,6 +118,7 @@
 - Defers writes when files are open in editor
 - Logs generation events to Learning Database
 - `.github/.roadie/.gitignore` created
+- DictionaryGenerator registered and fires on workflow_complete trigger
 
 ### Step 6: Edit Tracker (M21)
 
@@ -193,6 +194,7 @@
 - All Phase 1 tests pass
 - All Phase 1.5 tests pass
 - Full end-to-end: edit package.json → model updates → files regenerate → sections preserved
+- Full end-to-end: bug-fix workflow runs → entities written to SQLite → .github/codebase-dictionary.md updated
 
 ---
 
@@ -211,9 +213,11 @@ M20: Learning DB          M15: File Watcher    M19: Generator Mgr
     ▼                        │                        │
 M22: Section Manager  ─────┴──────────────────────┘
     │
+    ├─── M24: Codebase Dictionary ─── (fires on workflow_complete)
+    │
     ├───────────────────────┐
     ▼                        ▼
-M21: Edit Tracker      Generators (8 modules)
+M21: Edit Tracker      Generators (8 modules + DictionaryGenerator)
                              │
                              ▼
                     Phase 1 Integration
@@ -229,11 +233,12 @@ M21: Edit Tracker      Generators (8 modules)
 | 2 | Learning Database | 3-4 |
 | 3 | File Watcher Manager | 4-5 |
 | 4 | Section Manager (CRITICAL) | 6-8 |
+| 4.5 | Codebase Dictionary (M24) | 4-6 |
 | 5 | File Generator Manager | 4-5 |
 | 6 | Edit Tracker | 3-4 |
 | 7-9 | 8 Generator sub-modules | 8-10 |
 | 10 | Phase 1 Integration | 3-4 |
-| **Total** |  | **36-46 hours** |
+| **Total** |  | **41-54 hours** |
 
 ---
 

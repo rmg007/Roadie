@@ -45,10 +45,11 @@ That's it. Everything you need for Phase 1 implementation is inside this reposit
 | 18 | `03_Implementation_Specs_Phase_1/Phase 1 Project Structure.md` | Target directory layout, `tsconfig.json`, tool configs |
 | 19 | `04_Implementation_Specs_Phase_1.5/Project Model Persistence Specification.md` (M16) | Phase 1.5 SQLite persistence spec |
 | 20 | `04_Implementation_Specs_Phase_1.5/File Watcher Manager Specification.md` (M15) | VS Code FileSystemWatcher spec |
-| 21 | `04_Implementation_Specs_Phase_1.5/File Generator Manager Specification.md` (M19) | 8 generators, orchestration, per-generator timeout table |
+| 21 | `04_Implementation_Specs_Phase_1.5/File Generator Manager Specification.md` (M19) | 9 generators, orchestration, per-generator timeout table |
 | 22 | `04_Implementation_Specs_Phase_1.5/Section Manager Specification.md` (M22) | Ownership markers + Append Below merge — **the highest-risk module** |
 | 23 | `04_Implementation_Specs_Phase_1.5/Edit Tracker Specification.md` (M21) | Stubbed in Phase 1, activated in Phase 1.5 |
 | 24 | `04_Implementation_Specs_Phase_1.5/Learning Database Specification.md` | SQLite learning store |
+| 24.5 | `04_Implementation_Specs_Phase_1.5/Codebase Dictionary Specification.md` (M24) | Entity extraction, `codebase_entities` SQL schema, `DictionaryGenerator`, prompt injection integration |
 | 25 | `05_Implementation_Specs_Phase_2/Phase 2 Implementation Specification Master In.md` | Standalone MCP server phase |
 | 26 | `08_Integration_and_Testing/End-to-End Integration Scenarios.md` | E2E test scenarios |
 | 27 | `08_Integration_and_Testing/Testing, Error Handling & Security.md` | Error taxonomy + security baseline |
@@ -117,7 +118,8 @@ Before handing this corpus to an autonomous agent, confirm:
 - [x] `07_Patterns_and_Standards/Shared Zod Schemas.md` includes all 10 MCP tool input/output schemas
 - [x] `06_Workflows_and_Prompts/Intent Classification Taxonomy.md` inlines `INTENT_PATTERNS`, `NEGATIVE_SIGNALS`, and `CONFIDENCE_THRESHOLDS` with exact float values
 - [x] `07_Patterns_and_Standards/Model Selection Strategy.md` declares `ModelUnavailableError` and the `MODEL_PRIORITY` table
-- [x] `04_Implementation_Specs_Phase_1.5/File Generator Manager Specification.md` includes a per-generator budget table summing to ≤ 2000 ms
+- [x] `04_Implementation_Specs_Phase_1.5/Codebase Dictionary Specification.md` exists with full SQL schema, 3 module specs (entity-writer, dictionary-query, dictionary-generator), integration points, and Definition of Done
+- [x] `04_Implementation_Specs_Phase_1.5/File Generator Manager Specification.md` includes a per-generator budget table with all 9 generators (8 model-change + 1 workflow_complete) summing ≤ 2000 ms for model-change generators
 - [x] `02_Technical_Architecture/Extension Manifest & Configuration.md` includes the `roadie.testCommand` auto-detection decision tree
 - [x] `07_Patterns_and_Standards/UI UX Specification.md` covers all 7 workflows' HITL buttons, notification copy, sidebar decision, and accessibility contract
 - [x] Project root `package.json` matches `Extension Manifest & Configuration.md` versions exactly

@@ -14,7 +14,7 @@
 
 **Used By:** Extension activation, File Watcher (via model change events)
 
-**Complexity:** Medium (orchestration logic, 8 generator sub-modules)
+**Complexity:** Medium (orchestration logic, 9 generator sub-modules)
 
 **Estimated Build Time:** 4-5 hours (manager only; generators are separate modules)
 
@@ -58,7 +58,8 @@ Model Change Event
         ├─── Hooks Generator
         ├─── Workflows Generator
         ├─── Templates Generator
-        └─── AGENTS.md Generator
+        ├─── AGENTS.md Generator
+        └─── Codebase Dictionary Generator
 ```
 
 ---
@@ -74,6 +75,7 @@ Model Change Event
 | Workflow completed (first run of a type) | Agent Definitions, Skills |
 | Linter/formatter detected | Hooks |
 | CI structure detected | Workflows |
+| Workflow completed (any type with implementation steps) | Codebase Dictionary |
 | Any model change | PR Template, Issue Templates (regenerate always) |
 
 ---
@@ -276,7 +278,10 @@ Each generator has an individual timeout enforced via `Promise.race` in `runGene
 | 6 | Hooks | `.github/hooks/*.sh` | **150 ms** | Small shell snippets, conditional on detected linter/formatter |
 | 7 | Workflows | `.github/workflows/*.yml` | **150 ms** | YAML template (only regenerated on CI structure change) |
 | 8 | Templates | `.github/PULL_REQUEST_TEMPLATE.md`, `.github/ISSUE_TEMPLATE/*.md` | **150 ms** | Static markdown |
+| 9 | Codebase Dictionary | `.github/codebase-dictionary.md` | **300 ms** | SQLite read of all entities + markdown table rendering |
 | — | **Sum (serial)** | — | **1900 ms** | Worst-case if parallel execution degrades |
+
+⚠️ Generator 9 (Codebase Dictionary) fires on workflow_complete, not on model change events. It is NOT included in the 2 s model-change budget. It runs as a separate pipeline after each workflow completes.
 | — | **Max (parallel)** | — | **400 ms** | The slowest single generator dictates the wall-clock floor |
 
 Enforce with timing assertions in integration tests. Exceeding a per-generator budget produces a `GENERATOR_TIMEOUT` error (in the `RoadieError` taxonomy) and the corresponding `GenerationResult.written` is set to `false`; other generators proceed unaffected because they run in `Promise.allSettled`.
@@ -294,6 +299,7 @@ it('enforces per-generator budgets individually', async () => {
     hooks:                150,
     workflows:            150,
     templates:            150,
+    codebase_dictionary:  300,
   };
 
   for (const [fileType, budget] of Object.entries(budgets)) {

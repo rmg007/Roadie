@@ -418,8 +418,9 @@ interface ProjectModelDelta {
  * Types of files Roadie generates in Phase 1.
  */
 type GeneratedFileType =
-  | 'copilot_instructions' // .github/copilot-instructions.md
-  | 'agents_md'; // AGENTS.md at project root
+  | 'copilot_instructions'  // .github/copilot-instructions.md
+  | 'agents_md'             // AGENTS.md at project root
+  | 'codebase_dictionary';  // .github/codebase-dictionary.md (M24, Phase 1.5)
 
 /**
  * Generated file with content and metadata.

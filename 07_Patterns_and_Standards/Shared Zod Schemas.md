@@ -715,7 +715,7 @@ export type GetRecommendationsInput = z.infer<typeof GetRecommendationsInputSche
 export const GetRecommendationsOutputSchema = z.object({
   recommendations: z.array(z.object({
     priority: z.enum(['high', 'medium', 'low']),
-    category: z.enum(['missing_config', 'stale_model', 'incomplete_patterns', 'unused_features', 'configuration_suggestion']),
+    category: z.enum(['missing_config', 'stale_model', 'incomplete_patterns', 'unused_features', 'configuration_suggestion', 'dev_environment']),
     title: z.string().min(1),
     description: z.string().min(1),
     action: z.string().regex(/^roadie\//),

@@ -366,7 +366,165 @@
 }
 ```
 
-**Recommendation categories:** `missing_config` | `stale_model` | `incomplete_patterns` | `unused_features` | `configuration_suggestion`
+**Recommendation categories:** `missing_config` | `stale_model` | `incomplete_patterns` | `unused_features` | `configuration_suggestion` | `dev_environment`
+
+### Developer Environment Recommendations
+
+When `get_recommendations` is called, Roadie also inspects the developer's VS Code settings and installed extensions to detect suboptimal configurations. These checks use the `vscode.extensions.all` and `vscode.workspace.getConfiguration()` APIs — no file system access needed.
+
+**New recommendation category:** `dev_environment`
+
+**Five environment checks:**
+
+#### Check 1: Conflicting AI Extensions
+
+```typescript
+// Implementation in src/recommendations/environment-checks.ts
+const CONFLICTING_EXTENSIONS = [
+  'tabnine.tabnine-vscode',
+  'kiteco.kite',
+  'sourcegraph.cody-ai',
+  'codeium.codeium',
+  'amazonwebservices.aws-toolkit-vscode', // Amazon Q / CodeWhisperer
+];
+
+function checkConflictingExtensions(): Recommendation | null {
+  const installed = vscode.extensions.all.map(e => e.id.toLowerCase());
+  const conflicts = CONFLICTING_EXTENSIONS.filter(id => installed.includes(id));
+  if (conflicts.length === 0) return null;
+  return {
+    priority: 'high',
+    category: 'dev_environment',
+    title: `Conflicting AI extension(s) detected: ${conflicts.join(', ')}`,
+    description: 'Running multiple AI ghost-text providers creates race conditions that degrade Copilot performance. Disable other AI assistants for the best Roadie experience.',
+    action: null, // Manual action required — Roadie cannot disable extensions
+    actionArgs: {}
+  };
+}
+```
+
+#### Check 2: Formatter Set to On-Type
+
+```typescript
+function checkFormatterOnType(): Recommendation | null {
+  const config = vscode.workspace.getConfiguration('editor');
+  const formatOnType = config.get<boolean>('formatOnType', false);
+  if (!formatOnType) return null;
+  return {
+    priority: 'medium',
+    category: 'dev_environment',
+    title: 'Formatter running on every keystroke',
+    description: 'editor.formatOnType is enabled. This forces Copilot to constantly recalculate editor state. Switch to editor.formatOnSave for better performance.',
+    action: null,
+    actionArgs: {}
+  };
+}
+```
+
+#### Check 3: Local Workspace Indexing Disabled
+
+```typescript
+function checkLocalIndexing(): Recommendation | null {
+  const config = vscode.workspace.getConfiguration('github.copilot.chat.advanced.workspace');
+  const indexingEnabled = config.get<boolean>('codeSearchExternalIngest.enabled', false);
+  if (indexingEnabled) return null;
+  return {
+    priority: 'medium',
+    category: 'dev_environment',
+    title: 'Local workspace indexing disabled',
+    description: 'Enable github.copilot.chat.advanced.workspace.codeSearchExternalIngest.enabled for faster @workspace queries. First indexing takes ~60 seconds, then all queries use vector search instead of slow keyword matching.',
+    action: null,
+    actionArgs: {}
+  };
+}
+```
+
+#### Check 4: Next Edit Suggestions (NES) Disabled
+
+```typescript
+function checkNESEnabled(): Recommendation | null {
+  const config = vscode.workspace.getConfiguration('github.copilot');
+  const nesEnabled = config.get<boolean>('nextEditSuggestions.enabled', false);
+  if (nesEnabled) return null;
+  return {
+    priority: 'low',
+    category: 'dev_environment',
+    title: 'Next Edit Suggestions (NES) not enabled',
+    description: 'Enable github.copilot.nextEditSuggestions.enabled to let Copilot predict where you need to edit next (e.g., after renaming a variable, it points to the next instance). Also consider enabling nextEditSuggestions.extendedRange for multi-line structural jumps.',
+    action: null,
+    actionArgs: {}
+  };
+}
+```
+
+#### Check 5: Inline Suggest Debounce Not Set
+
+```typescript
+function checkInlineSuggestDebounce(): Recommendation | null {
+  const config = vscode.workspace.getConfiguration('editor');
+  const debounce = config.get<number>('inlineSuggest.minShowDelay', 0);
+  if (debounce >= 200) return null;
+  return {
+    priority: 'low',
+    category: 'dev_environment',
+    title: 'No debounce on inline suggestions',
+    description: 'Set editor.inlineSuggest.minShowDelay to 200-500ms to prevent ghost text from flickering with every keystroke. Reduces CPU usage and visual noise.',
+    action: null,
+    actionArgs: {}
+  };
+}
+```
+
+#### Orchestration
+
+```typescript
+// Called by the get_recommendations handler after existing checks
+export async function getEnvironmentRecommendations(): Promise<Recommendation[]> {
+  const checks = [
+    checkConflictingExtensions,
+    checkFormatterOnType,
+    checkLocalIndexing,
+    checkNESEnabled,
+    checkInlineSuggestDebounce,
+  ];
+  return checks.map(fn => fn()).filter((r): r is Recommendation => r !== null);
+}
+```
+
+**Standalone mode behavior:** In standalone MCP mode (no VS Code APIs), all environment checks return empty arrays. The `getEnvironmentRecommendations` function checks for `VsCodeShellProvider` before running; if running under `StandaloneShellProvider`, it returns `[]` silently.
+
+**Example output when environment issues detected:**
+
+```json
+{
+  "recommendations": [
+    {
+      "priority": "high",
+      "category": "missing_config",
+      "title": "No copilot-instructions.md found",
+      "description": "Run roadie/generate_file to create project-aware Copilot instructions.",
+      "action": "roadie/generate_file",
+      "actionArgs": {"fileType": "copilot-instructions"}
+    },
+    {
+      "priority": "high",
+      "category": "dev_environment",
+      "title": "Conflicting AI extension(s) detected: tabnine.tabnine-vscode",
+      "description": "Running multiple AI ghost-text providers creates race conditions that degrade Copilot performance. Disable other AI assistants for the best Roadie experience.",
+      "action": null,
+      "actionArgs": {}
+    },
+    {
+      "priority": "medium",
+      "category": "dev_environment",
+      "title": "Formatter running on every keystroke",
+      "description": "editor.formatOnType is enabled. This forces Copilot to constantly recalculate editor state. Switch to editor.formatOnSave for better performance.",
+      "action": null,
+      "actionArgs": {}
+    }
+  ]
+}
+```
 
 ---
 

@@ -20,6 +20,52 @@
 | `shell/mcp-manager.ts` | Process spawn, crash restart, graceful shutdown | Mock child_process |
 | `shell/vscode-providers.ts` | VS Code API wrapping | Mock vscode APIs |
 
+### Developer Environment Recommendation Tests
+
+```typescript
+describe('getEnvironmentRecommendations', () => {
+  it('detects conflicting AI extension (TabNine installed)', () => {
+    // Mock vscode.extensions.all to include tabnine.tabnine-vscode
+    const recs = getEnvironmentRecommendations();
+    expect(recs).toContainEqual(
+      expect.objectContaining({
+        category: 'dev_environment',
+        title: expect.stringContaining('tabnine'),
+      })
+    );
+  });
+
+  it('returns empty when no conflicts exist', () => {
+    // Mock vscode.extensions.all with only safe extensions
+    const recs = getEnvironmentRecommendations();
+    const envRecs = recs.filter(r => r.category === 'dev_environment');
+    expect(envRecs).toHaveLength(0);
+  });
+
+  it('detects formatOnType enabled', () => {
+    // Mock editor.formatOnType = true
+    const recs = getEnvironmentRecommendations();
+    expect(recs).toContainEqual(
+      expect.objectContaining({
+        title: expect.stringContaining('Formatter running on every keystroke'),
+      })
+    );
+  });
+
+  it('skips debounce check when delay >= 200ms', () => {
+    // Mock editor.inlineSuggest.minShowDelay = 300
+    const recs = getEnvironmentRecommendations();
+    expect(recs.find(r => r.title.includes('debounce'))).toBeUndefined();
+  });
+
+  it('returns empty array in standalone mode', () => {
+    // Use StandaloneShellProvider instead of VsCodeShellProvider
+    const recs = getEnvironmentRecommendations();
+    expect(recs).toHaveLength(0);
+  });
+});
+```
+
 ### Integration Tests
 
 1. **Standalone startup:** `npx roadie-mcp --project test/fixtures/node-js-next-js` → server starts, responds to tools, exits cleanly

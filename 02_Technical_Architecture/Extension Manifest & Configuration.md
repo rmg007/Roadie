@@ -2,7 +2,7 @@
 
 # Extension Manifest & Configuration
 
-## package.json Configuration for Phase 1
+## package.json Configuration for Phase 1 & Phase 1.5
 
 ---
 
@@ -13,10 +13,10 @@
   "name": "roadie",
   "displayName": "Roadie — The Invisible AI Workflow Engine",
   "description": "VS Code extension that makes GitHub Copilot smarter. Transforms chat into autonomous workflows: bug fix, feature development, refactoring, code review, documentation, dependency management, onboarding.",
-  "version": "0.5.0",
+  "version": "0.8.0",
   "publisher": "roadie",
   "engines": {
-    "vscode": "^1.84.0",
+    "vscode": "^1.93.0",
     "node": ">=20.0.0"
   },
   "categories": [
@@ -119,7 +119,7 @@
   },
   "scripts": {
     "vscode:prepublish": "npm run build",
-    "build": "tsup src/extension.ts --outDir out --format cjs --external:vscode",
+    "build": "tsup src/extension.ts --outDir out --format cjs --external vscode",
     "build:watch": "npm run build -- --watch",
     "lint": "eslint src --ext ts",
     "lint:fix": "npm run lint -- --fix",
@@ -436,15 +436,15 @@ Test suite times out after 60 seconds.
 
 ```json
 "engines": {
-  "vscode": "^1.84.0",
+  "vscode": "^1.93.0",
   "node": ">=20.0.0"
 }
 ```
 
-**vscode ^1.84.0:** Extension requires VS Code November 2023 or later.
+**vscode ^1.93.0:** Extension requires VS Code September 2024 or later.
 
-- Includes stable Chat Participant API
-- Includes Language Model API
+- Includes stable Chat Participant API (graduated from proposed API in 1.93.0)
+- Includes stable Language Model API
 - Includes FileSystemWatcher reliability improvements
 
 **node >=20.0.0:** Extension requires Node.js 20+.
@@ -485,7 +485,7 @@ npm run prepublish:test
 
 # Package into .vsix file
 npm run package
-# Output: roadie-0.5.0.vsix
+# Output: roadie-0.8.0.vsix
 
 # Publish to VS Code Marketplace
 npm run publish
@@ -499,7 +499,7 @@ npm run publish
 
 **Publisher:** roadie  
 
-**Version:** 0.5.0 (Phase 1)
+**Version:** 0.8.0 (Phase 1 + Phase 1.5)
 
 **Release:** Preview/Pre-release (marked as pre-release on marketplace)  
 
@@ -512,5 +512,7 @@ npm run publish
 **Keywords:** copilot, ai, workflow, automation, bug fix, refactoring, code review
 
 ---
+
+**Status:** ✅ Phase 1 & Phase 1.5 implemented
 
 **Next:** Go to Phase 1 Project Structure for file/folder layout.

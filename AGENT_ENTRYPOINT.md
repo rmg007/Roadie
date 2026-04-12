@@ -37,7 +37,7 @@ When you are ready to build, always defer to the Module Build Order.
 ### Agent Execution Rules:
 *   **Step-by-Step Isolation:** Implement exactly one module/step at a time. Do not anticipate or write code for future steps unless explicitly shared in the immediate context.
 *   **Thin Vertical Slice First:** Step 9 of the Build Order establishes the first "Bug Fix Workflow" end-to-end. Your priority is to ensure the mock infrastructure (Step 3) and data persistence layers seamlessly orchestrate into this vertical slice before expanding to horizontal workflows.
-*   **Context Clearing:** Clear your context between major architectural *milestones* (e.g., after the initial Types & Mocks milestone, before moving to the persistent databases). However, **do not clear context between tightly coupled modules** (e.g., M14 Project Model Persistence and M15 File Watcher), as they share interfaces that you must keep in working memory.
+*   **Context Clearing:** Clear your context between major architectural *milestones* (e.g., after the initial Types & Mocks milestone, before moving to the persistent databases). However, **do not clear context between tightly coupled modules** (e.g., M16 Project Model Persistence and M15 File Watcher), as they share interfaces that you must keep in working memory.
 
 ---
 

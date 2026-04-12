@@ -2,9 +2,11 @@
 
 ## Single Source of Truth for All Module Contracts
 
-Every module in Phase 1 exports/imports types defined here. If a module needs a type that doesn't exist on this page, it's a spec bug.
+Every module in Phase 1 and Phase 1.5 exports/imports types defined here. If a module needs a type that doesn't exist on this page, it's a spec bug.
 
 **Key Principle:** Types flow outward from this file. External modules import from `types.ts`. No circular imports.
+
+**Status:** ✅ Complete — includes all Phase 1 types and Phase 1.5 additions (Codebase Dictionary types).
 
 ---
 
@@ -415,11 +417,17 @@ interface ProjectModelDelta {
 
 ```tsx
 /**
- * Types of files Roadie generates in Phase 1.
+ * Types of files Roadie generates (Phase 1 + Phase 1.5).
  */
 type GeneratedFileType =
   | 'copilot_instructions'  // .github/copilot-instructions.md
+  | 'path_instructions'     // .github/path-instructions/*.md (Phase 1.5)
+  | 'agent_definitions'     // .github/agents/*.md (Phase 1.5)
   | 'agents_md'             // AGENTS.md at project root
+  | 'skills'                // .github/skills/*.md (Phase 1.5)
+  | 'hooks'                 // .github/hooks/*.md (Phase 1.5)
+  | 'workflows'             // .github/workflows/*.md (Phase 1.5)
+  | 'templates'             // .github/templates/*.md (Phase 1.5)
   | 'codebase_dictionary';  // .github/codebase-dictionary.md (M24, Phase 1.5)
 
 /**
@@ -482,7 +490,7 @@ class StepExecutionError extends Error {
  * Wrapper for VS Code's Language Model API.
  * Returned by vscode.lm.selectChatModels().
  */
-type LanguageModelChat = ReturnType<typeof vscode.lm.selectChatModels>[0];
+type LanguageModelChat = vscode.LanguageModelChat;
 
 /**
  * Wrapper for VS Code's chat response stream.

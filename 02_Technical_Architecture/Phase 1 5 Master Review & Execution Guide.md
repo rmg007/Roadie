@@ -24,7 +24,7 @@ A comprehensive review of Phase 1 & Phase 1.5 specifications identified:
 
 **Timeline:** 3-4 weeks from now to complete Phase 1.5 (specs + implementation)
 
-**Blocking Item:** Missing M14 spec (Project Model Persistence) — must create first
+**Blocking Item:** ✅ RESOLVED — M16 spec (Project Model Persistence) created and implemented
 
 ---
 
@@ -77,7 +77,7 @@ The Phase 1.5 specifications had several critical issues:
 
 ### 3. Critical Missing Specs
 
-- **A1:** Project Model Persistence (M14) spec doesn't exist — BLOCKS ALL OTHER MODULES
+- **A1:** ✅ RESOLVED — Project Model Persistence (M16) spec created and implemented
 - **Missing:** Generator specs, integration guide, other specs marked "COMING SOON"
 
 ### 4. Edge Cases Not Handled
@@ -238,7 +238,7 @@ Can be deferred but improve quality:
 - **PERF-2:** Verify latency math (1h)
 - **PERF-3:** Async I/O enforcement (2h)
 - **FW-3:** Polling optimization (2h)
-- **Generator specs (M20-27):** 7-8h
+- **Generator specs (M25-M32):** 7-8h
 - **Edit Tracker spec (M21):** 3-4h
 - **Learning DB spec (M23):** 3-4h
 - **Phase 1 Integration:** 2-3h
@@ -335,7 +335,7 @@ Can be deferred but improve quality:
 
 - ✅ All 6 MUST FIX issues fixed
 - ✅ M14 implementation started by AI agent
-- ✅ M20-27 specs created
+- ✅ M25-M32 specs created
 - ✅ Build on track
 
 ### By End of Week 3
@@ -402,14 +402,9 @@ Can be deferred but improve quality:
 
 ## Document Maintenance
 
-**Status: LIVE DOCUMENT** ✅
+**Status: SUPERSEDED** — All issues resolved, Phase 1 & 1.5 fully implemented.
 
-This page is the master reference for Phase 1.5 review & execution.
-
-- **Update:** Roadmap checklist weekly
-- **Link:** From all related pages
-- **Verify:** Against comprehensive review page
-- **Archive:** When Phase 1.5 complete (Week 4)
+This page is retained for historical context only. See `00_START_HERE.md` for the current reading order.
 
 ---
 
@@ -417,10 +412,4 @@ This page is the master reference for Phase 1.5 review & execution.
 
 **Date:** April 11, 2026  
 
-**Confidence Level:** HIGH (comprehensive analysis with multiple cross-checks)  
-
-🚨 **CRITICAL:** Start Week 1 corrections immediately. M14 spec is the biggest blocker.
-
-🌟 **Good News:** All foundation documents are correct. Just need specs to catch up.
-
-🚀 **Expected Timeline:** 3-4 weeks from now to complete Phase 1.5.
+**Archived:** 2026-04-12 — Phase 1 & Phase 1.5 fully implemented.

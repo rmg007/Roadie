@@ -1,7 +1,5 @@
 # 🏷️ Section Manager Specification
 
-# Section Manager Specification
-
 ## Detects Section Ownership, Computes Hashes, Merges Human Edits with Roadie-Generated Content
 
 ---
@@ -10,15 +8,17 @@
 
 **Module ID:** M22  
 
-**File Location:** `src/generators/section-manager.ts`  
+**File Location:** `src/generator/section-manager.ts`  
 
-**Depends On:** Project Model Persistence (M16), File Generator Manager (M19)  
+**Depends On:** Learning Database (M23)  
 
-**Used By:** All 8 file generators  
+**Used By:** File Generator Manager (M19), Edit Tracker (M21), all 9 file generators  
 
 **Complexity:** **CRITICAL** (merge logic is most error-prone in Phase 1.5)  
 
 **Estimated Build Time:** 6-8 hours  
+
+**Implementation Status:** ✅ COMPLETE — Implemented as of 2026-04-12
 
 ---
 
@@ -132,7 +132,7 @@ function computeSectionHash(content: string): string {
     .join('\n');
   
   // 2. Hash with SHA256
-  const hash = crypto.sha256(normalized);
+  const hash = crypto.createHash('sha256').update(normalized).digest('hex');
   
   // 3. Return first 8 chars (sufficient for collision detection)
   return hash.substring(0, 8);

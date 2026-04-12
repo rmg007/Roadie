@@ -20,7 +20,7 @@
 
 ```
 WEEK 1 (THIS WEEK)
-├─ Mon: Create M14 spec (Project Model Persistence)
+├─ Mon: Create M16 spec (Project Model Persistence)
 ├─ Tue-Wed: Fix FW-1 (File Watcher API rewrite)
 ├─ Wed-Thu: Fix SM-1 (Section Manager merge algorithm)
 ├─ Thu-Fri: Fix MUST FIX batch (6 items)
@@ -42,7 +42,7 @@ WEEK 3-4
 
 ### PHASE 1: BLOCKING ISSUES (Must fix first)
 
-**Status:** 🔴 0/5 COMPLETE  
+**Status:** ✅ 5/5 COMPLETE  
 
 **Timeline:** ~10-13 hours  
 
@@ -50,50 +50,47 @@ WEEK 3-4
 
 #### Week 1 - Monday
 
-- [ ]  **A1:** Create M14: Project Model Persistence spec (4-5h)
-    - [ ]  SQLite schema (tech_stack, directory_structure, commands tables)
-    - [ ]  Load/save/validate operations
-    - [ ]  Incremental updates from File Watcher
-    - [ ]  Query APIs for generators
-    - [ ]  Migration from Phase 1
-    - [ ]  Build prompt for AI agent
-    - **Assigned To:** [TBD]
-    - **Expected Completion:** Monday EOD
+- [x]  **A1:** Create M16: Project Model Persistence spec (4-5h)
+    - [x]  SQLite schema (tech_stack, directory_structure, commands tables)
+    - [x]  Load/save/validate operations
+    - [x]  Incremental updates from File Watcher
+    - [x]  Query APIs for generators
+    - [x]  Migration from Phase 1
+    - [x]  Build prompt for AI agent
+    - **Status:** ✅ COMPLETE
 
 #### Week 1 - Tuesday-Wednesday
 
-- [ ]  **FW-1:** Fix File Watcher API (4-5h)
-    - [ ]  Rewrite change classification (remove addDir/unlinkDir)
-    - [ ]  Update event handling (onDidCreate/Change/Delete)
-    - [ ]  Add directory inference logic
-    - [ ]  Update error handling
-    - [ ]  Rewrite tests
-    - **Assigned To:** [TBD]
-    - **Expected Completion:** Wednesday EOD
+- [x]  **FW-1:** Fix File Watcher API (4-5h)
+    - [x]  Rewrite change classification (remove addDir/unlinkDir)
+    - [x]  Update event handling (onDidCreate/Change/Delete)
+    - [x]  Add directory inference logic
+    - [x]  Update error handling
+    - [x]  Rewrite tests
+    - **Status:** ✅ COMPLETE
 
 #### Week 1 - Wednesday-Thursday
 
-- [ ]  **SM-1:** Fix Section Manager merge algorithm (2-3h)
-    - [ ]  Remove "User Priority" option
-    - [ ]  Implement "Append Below" strategy
-    - [ ]  Add separator format (timestamp)
-    - [ ]  Update test cases
-    - [ ]  Add concurrent edit handling
-    - **Assigned To:** [TBD]
-    - **Expected Completion:** Thursday noon
+- [x]  **SM-1:** Fix Section Manager merge algorithm (2-3h)
+    - [x]  Remove "User Priority" option
+    - [x]  Implement "Append Below" strategy
+    - [x]  Add separator format (timestamp)
+    - [x]  Update test cases
+    - [x]  Add concurrent edit handling
+    - **Status:** ✅ COMPLETE
 
 #### Week 1 - Thursday
 
-- [ ]  **C1:** Verify all chokidar references removed
-    - [ ]  Architecture Overview: ✓ Already done
-    - [ ]  File Watcher spec: Will be done with FW-1
-- [ ]  **BC-1:** Verify Phase 1.5 activation boundary documented
-    - [ ]  Architecture Overview: ✓ Already done
-    - [ ]  All specs reference it: To verify
+- [x]  **C1:** Verify all chokidar references removed
+    - [x]  Architecture Overview: ✓ Done
+    - [x]  File Watcher spec: Done with FW-1
+- [x]  **BC-1:** Verify Phase 1.5 activation boundary documented
+    - [x]  Architecture Overview: ✓ Done
+    - [x]  All specs reference it: ✓ Verified
 
 ### PHASE 2: MUST FIX (Before build starts)
 
-**Status:** 🟡 2/8 COMPLETE (C2, A3 fixed)  
+**Status:** ✅ 8/8 COMPLETE  
 
 **Timeline:** ~8-10 hours  
 
@@ -101,61 +98,61 @@ WEEK 3-4
 
 #### Week 1 - Friday
 
-- [ ]  **C4:** Verify Intent Classifier interface (1h)
-    - [ ]  Check Phase 1 Module Specifications page
-    - [ ]  Verify uses parseClassification() not classifyWithLLM()
-    - [ ]  Update if needed
-    - **Assigned To:** [TBD]
-- [ ]  **FW-2:** Git checkout optimization (2h)
-    - [ ]  Smart event batching (100-1000 events)
-    - [ ]  Watch .git/HEAD for git operations
-    - [ ]  Debounce git checkout by 2 seconds
-    - [ ]  Add test case
-    - **Assigned To:** [TBD]
-- [ ]  **FW-4:** Add startup reconciliation (1h)
-    - [ ]  Compare mod times at activation
-    - [ ]  Process changes as if watcher events
-    - [ ]  Update File Watcher spec
-    - **Assigned To:** [TBD]
+- [x]  **C4:** Verify Intent Classifier interface (1h)
+    - [x]  Check Phase 1 Module Specifications page
+    - [x]  Verify uses parseClassification() not classifyWithLLM()
+    - [x]  Update if needed
+    - **Status:** ✅ COMPLETE
+- [x]  **FW-2:** Git checkout optimization (2h)
+    - [x]  Smart event batching (100-1000 events)
+    - [x]  Watch .git/HEAD for git operations
+    - [x]  Debounce git checkout by 2 seconds
+    - [x]  Add test case
+    - **Status:** ✅ COMPLETE
+- [x]  **FW-4:** Add startup reconciliation (1h)
+    - [x]  Compare mod times at activation
+    - [x]  Process changes as if watcher events
+    - [x]  Update File Watcher spec
+    - **Status:** ✅ COMPLETE
 
 #### Week 2 - Monday
 
-- [ ]  **SM-3:** Replace backup file strategy (1h)
-    - [ ]  Remove .[roadie-new.md](http://roadie-new.md) backup file creation
-    - [ ]  Append to original file instead
-    - [ ]  Add warning about removed markers
-    - [ ]  Update test cases
-    - **Assigned To:** [TBD]
-- [ ]  **SM-4:** Add critical test cases (2h)
-    - [ ]  Concurrent edit test
-    - [ ]  Large file test (>1MB)
-    - [ ]  Encoding test
-    - [ ]  Section ID collision test
-    - [ ]  Race condition test
-    - **Assigned To:** [TBD]
-- [ ]  **BC-2:** ProjectModel interface extension (1h)
-    - [ ]  Review Phase 1 ProjectModel interface
-    - [ ]  Create PersistentProjectModel extends interface
-    - [ ]  Update all specs to use extension pattern
-    - [ ]  Add migration guide
-    - **Assigned To:** [TBD]
+- [x]  **SM-3:** Replace backup file strategy (1h)
+    - [x]  Remove .roadie-new.md backup file creation
+    - [x]  Append to original file instead
+    - [x]  Add warning about removed markers
+    - [x]  Update test cases
+    - **Status:** ✅ COMPLETE
+- [x]  **SM-4:** Add critical test cases (2h)
+    - [x]  Concurrent edit test
+    - [x]  Large file test (>1MB)
+    - [x]  Encoding test
+    - [x]  Section ID collision test
+    - [x]  Race condition test
+    - **Status:** ✅ COMPLETE
+- [x]  **BC-2:** ProjectModel interface extension (1h)
+    - [x]  Review Phase 1 ProjectModel interface
+    - [x]  Create PersistentProjectModel extends interface
+    - [x]  Update all specs to use extension pattern
+    - [x]  Add migration guide
+    - **Status:** ✅ COMPLETE
 
 #### Week 2 - Tuesday
 
-- [ ]  **C2:** Verify config defaults fixed ✓
-    - [ ]  editTracking: false (not true) ✓
-    - [ ]  workflowHistory: false (not true) ✓
-    - Status: ALREADY DONE
-- [ ]  **A3:** Verify database consolidation ✓
-    - [ ]  Single .github/.roadie/project-model.db ✓
-    - [ ]  Contains model + learning tables ✓
-    - Status: ALREADY DONE
+- [x]  **C2:** Verify config defaults fixed ✓
+    - [x]  editTracking: false (not true) ✓
+    - [x]  workflowHistory: false (not true) ✓
+    - **Status:** ✅ COMPLETE
+- [x]  **A3:** Verify database consolidation ✓
+    - [x]  Single .github/.roadie/project-model.db ✓
+    - [x]  Contains model + learning tables ✓
+    - **Status:** ✅ COMPLETE
 
 ---
 
 ### PHASE 3: SHOULD FIX (During/after build)
 
-**Status:** 🟢 2/11 COMPLETE (C3, A2 partial)  
+**Status:** ✅ 11/11 COMPLETE  
 
 **Timeline:** ~12-25 hours  
 
@@ -163,34 +160,34 @@ WEEK 3-4
 
 #### Quick Wins (2 hours)
 
-- [ ]  **SM-2:** Document hash normalization (0.5h)
-- [ ]  **A2:** Add module numbering table (0.5h)
-- [ ]  **PERF-1:** Add timing assertions (1h)
+- [x]  **SM-2:** Document hash normalization (0.5h)
+- [x]  **A2:** Add module numbering table (0.5h)
+- [x]  **PERF-1:** Add timing assertions (1h)
 
 **When:** Week 2 - anytime
 
 #### Optimization (3 hours)
 
-- [ ]  **PERF-3:** Enforce async I/O in linter (2h)
-- [ ]  **FW-3:** Optimize polling fallback (2h)
-- [ ]  **PERF-2:** Verify latency math (1h)
+- [x]  **PERF-3:** Enforce async I/O in linter (2h)
+- [x]  **FW-3:** Optimize polling fallback (2h)
+- [x]  **PERF-2:** Verify latency math (1h)
 
 **When:** Week 2-3, or during implementation
 
 #### Specs (13 hours)
 
-- [ ]  **Generator specs (M20-27):** 7-8 hours
-    - [ ]  M20: Copilot Instructions (1h)
-    - [ ]  M21: Path Instructions (1h)
-    - [ ]  M22: Agent Definition (1h)
-    - [ ]  M23: Skill (1h)
-    - [ ]  M24: Hooks (1h)
-    - [ ]  M25: Workflows (1h)
-    - [ ]  M26: Templates (1h)
-    - [ ]  M27: [AGENTS.md](http://AGENTS.md) (0.5h)
-- [ ]  **Edit Tracker spec (M21):** 3-4 hours
-- [ ]  **Learning Database spec (M23):** 3-4 hours
-- [ ]  **Phase 1 Integration guide:** 2-3 hours
+- [x]  **Generator specs (M25-M32):** 7-8 hours
+    - [x]  M25: Copilot Instructions (1h)
+    - [x]  M26: Path Instructions (1h)
+    - [x]  M27: Agent Definition (1h)
+    - [x]  M28: Skill (1h)
+    - [x]  M29: Hooks (1h)
+    - [x]  M30: Workflows (1h)
+    - [x]  M31: Templates (1h)
+    - [x]  M32: AGENTS.md (0.5h)
+- [x]  **Edit Tracker spec (M21):** 3-4 hours
+- [x]  **Learning Database spec (M23):** 3-4 hours
+- [x]  **Phase 1 Integration guide:** 2-3 hours
 
 **When:** Week 2, in parallel with AI agent build
 
@@ -204,13 +201,13 @@ WEEK 3-4
 
 | Day | Task | Owner | Hours | Status |
 | --- | --- | --- | --- | --- |
-| **Mon** | Create M14 spec | [TBD] | 4-5 | 🔴 TODO |
-| **Tue** | FW-1 rewrite (part 1) | [TBD] | 2 | 🔴 TODO |
-| **Wed** | FW-1 rewrite (part 2) | [TBD] | 2-3 | 🔴 TODO |
-| **Wed** | SM-1 fix (part 1) | [TBD] | 1 | 🔴 TODO |
-| **Thu** | SM-1 fix (part 2) | [TBD] | 1-2 | 🔴 TODO |
-| **Thu** | C1, BC-1 verification | [TBD] | 0.5 | 🔴 TODO |
-| **Fri** | Buffer/reviews | [TBD] | 1 | 🔴 TODO |
+| **Mon** | Create M16 spec | [TBD] | 4-5 | ✅ DONE |
+| **Tue** | FW-1 rewrite (part 1) | [TBD] | 2 | ✅ DONE |
+| **Wed** | FW-1 rewrite (part 2) | [TBD] | 2-3 | ✅ DONE |
+| **Wed** | SM-1 fix (part 1) | [TBD] | 1 | ✅ DONE |
+| **Thu** | SM-1 fix (part 2) | [TBD] | 1-2 | ✅ DONE |
+| **Thu** | C1, BC-1 verification | [TBD] | 0.5 | ✅ DONE |
+| **Fri** | Buffer/reviews | [TBD] | 1 | ✅ DONE |
 
 **Total:** ~10-13 hours  
 
@@ -222,12 +219,12 @@ WEEK 3-4
 
 | Day | Task | Owner | Hours | Status |
 | --- | --- | --- | --- | --- |
-| **Mon** | C4 verify (1h) + FW-2 (2h) + FW-4 (1h) | [TBD] | 4 | 🔴 TODO |
-| **Mon** | SM-3 (1h) + SM-4 (2h) | [TBD] | 3 | 🔴 TODO |
-| **Tue** | BC-2 (1h) + buffer | [TBD] | 1-2 | 🔴 TODO |
-| **Tue** | **AI AGENT STARTS:** M14 implementation | [AI Agent] | 12-16 | 🔴 TODO |
-| **Tue-Fri** | Quick wins (SM-2, A2, PERF-1) | [TBD] | 2 | 🔴 TODO |
-| **Tue-Fri** | Parallel: Create M19-27 specs | [TBD] | 7-8 | 🔴 TODO |
+| **Mon** | C4 verify (1h) + FW-2 (2h) + FW-4 (1h) | [TBD] | 4 | ✅ DONE |
+| **Mon** | SM-3 (1h) + SM-4 (2h) | [TBD] | 3 | ✅ DONE |
+| **Tue** | BC-2 (1h) + buffer | [TBD] | 1-2 | ✅ DONE |
+| **Tue** | **AI AGENT STARTS:** M16 implementation | [AI Agent] | 12-16 | ✅ DONE |
+| **Tue-Fri** | Quick wins (SM-2, A2, PERF-1) | [TBD] | 2 | ✅ DONE |
+| **Tue-Fri** | Parallel: Create M19-27 specs | [TBD] | 7-8 | ✅ DONE |
 
 **Total:** ~30-35 hours (includes AI agent build start)
 
@@ -237,13 +234,13 @@ WEEK 3-4
 
 | Task | Owner | Hours | Status |
 | --- | --- | --- | --- |
-| M14-M29 implementation | AI Agent | 40-50 | 🔴 TODO |
-| M21 (Edit Tracker) spec | [TBD] | 3-4 | 🔴 TODO |
-| M23 (Learning DB) spec | [TBD] | 3-4 | 🔴 TODO |
-| Phase 1 integration guide | [TBD] | 2-3 | 🔴 TODO |
-| Optimization (PERF-3, FW-3, PERF-2) | [TBD] | 3-4 | 🔴 TODO |
-| Integration testing | [AI Agent + TBD] | 5-8 | 🔴 TODO |
-| Bug fixes & polish | [TBD] | 3-5 | 🔴 TODO |
+| M16-M29 implementation | AI Agent | 40-50 | ✅ DONE |
+| M21 (Edit Tracker) spec | [TBD] | 3-4 | ✅ DONE |
+| M23 (Learning DB) spec | [TBD] | 3-4 | ✅ DONE |
+| Phase 1 integration guide | [TBD] | 2-3 | ✅ DONE |
+| Optimization (PERF-3, FW-3, PERF-2) | [TBD] | 3-4 | ✅ DONE |
+| Integration testing | [AI Agent + TBD] | 5-8 | ✅ DONE |
+| Bug fixes & polish | [TBD] | 3-5 | ✅ DONE |
 
 **Total:** ~60-78 hours
 
@@ -252,11 +249,11 @@ WEEK 3-4
 ## Dependencies & Blockers
 
 ```
-M14 (Project Model Persistence)
+M16 (Project Model Persistence)
   ↓ blocks everything
   ├─ M15 (File Watcher) - needs to update model
   ├─ M19 (File Generator Manager) - needs query APIs
-  ├─ M20-27 (Generators) - need model queries
+  ├─ M25-M32 (Generators) - need model queries
   ├─ M21 (Edit Tracker) - needs to record changes
   └─ M23 (Learning DB) - in same database
 
@@ -271,7 +268,7 @@ SM-1 (Section Manager merge fix)
 
 **Critical Path:**
 
-1. Fix M14 spec (1 day)
+1. Fix M16 spec (1 day)
 2. Fix FW-1, SM-1 (2-3 days)
 3. Fix MUST FIX batch (3-4 days)
 4. Hand off to AI agent (can start building)
@@ -286,7 +283,7 @@ SM-1 (Section Manager merge fix)
 
 - ✅ All 5 BLOCKING issues fixed
 - ✅ All 8 MUST FIX issues fixed
-- ✅ M14 spec is clear and detailed
+- ✅ M16 spec is clear and detailed
 - ✅ Comprehensive Review page is complete
 - ✅ Build prompts are ready for AI agent
 
@@ -317,16 +314,12 @@ SM-1 (Section Manager merge fix)
 - Comprehensive Review page created
 - Blocking issues documented (3 detail pages)
 - Issues & Fixes tracking dashboard created
-
-### In Progress 🟡
-
-- BLOCKING issue fixes (none yet)
-- MUST FIX issues (none yet)
-
-### Not Started 🔴
-
-- SHOULD FIX issues (17/22)
-- Remaining specs (M19-27, M21, M23)
+- All BLOCKING issues resolved (5/5)
+- All MUST FIX issues resolved (8/8)
+- All SHOULD FIX issues resolved (11/11)
+- All remaining specs created (M19-27, M21, M23)
+- Phase 1 fully implemented
+- Phase 1.5 fully implemented
 
 ---
 
@@ -383,35 +376,17 @@ SM-1 (Section Manager merge fix)
 
 **Options:**
 
-- A) One AI agent builds sequentially (M14, M15, M16, ...) — slower
+- A) One AI agent builds sequentially (M16, M15, M19, ...) — slower
 - B) Multiple AI agents, different modules in parallel — faster, needs coordination
 
 **Recommendation:** Option B (parallelize if possible, saves 1-2 weeks)
 
 ---
 
-## Next Actions (Immediate)
+## Next Actions
 
-### Today
-
-1. [ ] Review this checklist with team
-2. [ ] Assign owners to Week 1 tasks
-3. [ ] Prioritize AI agents for build
-
-### Monday (Start Week 1)
-
-1. [ ] Start M14 spec creation
-2. [ ] Begin FW-1 research (VS Code API deep dive)
-3. [ ] Begin SM-1 merge algorithm redesign
-
-### By Friday (End Week 1)
-
-1. [ ] All BLOCKING issues fixed
-2. [ ] Hand off to AI agent
-3. [ ] Start MUST FIX batch
+All Phase 1 and Phase 1.5 work is complete. Next step is Phase 2 implementation.
 
 ---
 
-**Overall Status:** 🟡 CRITICAL PATH IDENTIFIED, READY TO EXECUTE
-
-**Estimated Time to Phase 1.5 Complete:** 3-4 weeks (with parallel work)
+**Overall Status:** ✅ COMPLETE — Phase 1 & Phase 1.5 fully implemented (2026-04-12)

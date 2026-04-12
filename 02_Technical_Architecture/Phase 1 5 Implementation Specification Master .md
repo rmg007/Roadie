@@ -2,7 +2,7 @@
 
 ## Passive Mode: File Watching, Persistent Model, Silent Generation
 
-**Status:** 📝 READY TO BUILD  
+**Status:** ✅ IMPLEMENTED — Phase 1.5 fully built and integrated as of 2026-04-12  
 
 **Scope:** Passive Mode (File Watcher, Persistent Model, File Generation, Edit Tracking, Learning DB)  
 
@@ -10,7 +10,7 @@
 
 **Target Audience:** AI Coding Agents, Senior Engineers  
 
-**Estimated Build Time:** 25-30 hours  
+**Estimated Build Time:** 41-54 hours  
 
 **Critical Complexity:** Section ownership + merge logic (most error-prone)  
 
@@ -37,7 +37,7 @@
 - Produces .github/ files from project model without user action
 - Respects section ownership (detects human edits)
 - Diff-before-write (only write if changed)
-- 8 file types: instructions, agents, skills, hooks, workflows, templates, [AGENTS.md](http://AGENTS.md), dot-roadie config
+- 9 file types: instructions, agents, skills, hooks, workflows, templates, AGENTS.md, dot-roadie config, codebase dictionary
 
 **Edit Tracking**
 
@@ -81,10 +81,11 @@
 4. **🏷️ Section Manager** (CRITICAL) — Markers, hashing, append-below merge, edge cases
 5. **✏️ Edit Tracker** — Edit detection, diff computation, snapshot storage
 6. **📚 Learning Database** — SQLite schema, retention, pruning, section hashes
+7. **📖 Codebase Dictionary** — Entity annotation, SQLite storage, relationship extraction, context surfacing
 
 ### File-Specific Generators
 
-1. **📦 File-Specific Generator Templates (All 8)** — Copilot Instructions, Path Instructions, Agent Definitions, Skills, Hooks, Workflows, Templates, [AGENTS.md](http://AGENTS.md)
+1. **📦 File-Specific Generator Templates (All 9)** — Copilot Instructions, Path Instructions, Agent Definitions, Skills, Hooks, Workflows, Templates, AGENTS.md, Codebase Dictionary
 
 ### Phase 1 Integration & Configuration
 
@@ -108,7 +109,7 @@
 **Build (Days 2-15)**
 
 1. Go to "Module Build Order & Dependencies"
-2. Follow M14 → M15 → ... → M28 (or your build sequence)
+2. Follow M16 → M23 → M15 → M22 → M24 → M19 → M21 (build sequence)
 3. Each module has a "Build Prompt" ready to paste
 4. After each module, run verification criteria
 5. Section Manager is most complex — go slow, ask questions
@@ -129,10 +130,10 @@
 
 ### For Product Owners
 
-- **Timeline:** Phase 1 complete + 15 more modules = 25-30 hours
-- **Critical Path:** Project Model Persistence (M14) is blocker for all generators
-- **Risk:** Section Manager (M18+) is most complex; leave extra buffer
-- **Demo:** After M17 (generators working), can show auto-generated .github/ files
+- **Timeline:** Phase 1 complete + 15 more modules = 41-54 hours
+- **Critical Path:** Project Model Persistence (M16) was blocker for all generators — now complete
+- **Risk:** Section Manager (M22) was most complex — now complete and tested
+- **Demo:** Generators working — auto-generated .github/ files are functional
 
 ---
 
@@ -163,7 +164,8 @@ Phase 1.5 (Passive) — NEW
 │  ├─ Hooks
 │  ├─ Workflows
 │  ├─ Templates
-│  └─ AGENTS.md
+│  ├─ AGENTS.md
+│  └─ Codebase Dictionary
 ├─ Section Manager (preserves human edits)
 │  ├─ Detects section ownership markers
 │  ├─ Computes hashes of Roadie-owned sections
@@ -188,9 +190,9 @@ Phase 1 Integration Points
 
 ## 🚨 Critical Complexity Areas
 
-### Section Manager (Module M18+)
+### Section Manager (Module M22)
 
-This is the most error-prone part of Phase 1.5. Specify with extreme precision:
+This is the most error-prone part of Phase 1.5. Specified with extreme precision:
 
 - Marker format (exact syntax for JSON, YAML, Markdown, TypeScript)
 - Hash computation (what gets hashed?)
@@ -215,7 +217,7 @@ Edge cases that will cause bugs:
 
 **Risk Level:** MEDIUM — edge cases must be tested
 
-### Project Model Persistence (Module M14)
+### Project Model Persistence (Module M16)
 
 Startup/shutdown correctness is critical:
 
@@ -234,14 +236,14 @@ Startup/shutdown correctness is critical:
 | Phase | Modules | Files | Estimated Hours | Risk Level |
 | --- | --- | --- | --- | --- |
 | Phase 1 | 14 | 28 | 33.5 | Medium |
-| **Phase 1.5** | **~15** | **~30** | **25-30** | **High** |
-| **Total** | **~29** | **~58** | **~58.5** | — |
+| **Phase 1.5** | **~15** | **~30** | **41-54** | **High** |
+| **Total** | **~29** | **~58** | **~75-88** | — |
 
 **Phase 1.5 Risk Drivers:**
 
-- Section Manager complexity (M18-M24, ~7 modules)
-- 8 different file generators (M20-M27)
-- SQLite schema design (M14)
+- Section Manager complexity (M22, ~7 modules)
+- 9 different file generators (generator sub-modules including Codebase Dictionary)
+- SQLite schema design (M16)
 - File watcher edge cases (M15)
 
 ---
@@ -263,17 +265,18 @@ Startup/shutdown correctness is critical:
 
 ## 🗺️ Module-to-Roadmap Milestone Mapping
 
-The Phase 1.5 specs use internal module IDs (M14-M22+) that don't map 1:1 to Roadmap milestones (M15-M20). Here's the mapping:
+The Phase 1.5 specs use internal module IDs (M15-M24) that don't map 1:1 to Roadmap milestones (M15-M20). Here's the mapping:
 
 | Spec Module ID | Spec Module Name | Roadmap Milestone | Roadmap Description |
 | --- | --- | --- | --- |
 | M16 | Project Model Persistence | M15 | File Watcher + Incremental Model Updates |
 | M15 | File Watcher Manager | M15 | File Watcher + Incremental Model Updates |
-| M20 | Learning Database | M18 | Learning Database + Edit Tracking |
+| M23 | Learning Database | M18 | Learning Database + Edit Tracking |
 | M22 | Section Manager | M16 | Automatic File Regeneration |
 | M19 | File Generator Manager | M16 | Automatic File Regeneration |
 | M21 | Edit Tracker | M18 | Learning Database + Edit Tracking |
-| Generators | 8 Generator Sub-modules | M17 + M19 | Pattern Detection + Extended File Gen |
+| Generators | 9 Generator Sub-modules | M17 + M19 | Pattern Detection + Extended File Gen |
+| M24 | Codebase Dictionary | M17 | Pattern Detection |
 | Integration | Phase 1 Integration | M20 | Sidebar View + Status Dashboard |
 
 > **Note:** Roadmap milestones group multiple spec modules together. When building, follow the **Phase 1.5 Module Build Order** page (which uses the spec module IDs), not the Roadmap milestone sequence. The Roadmap is for product planning; the Build Order is for implementation.
@@ -294,14 +297,13 @@ The Phase 1.5 specs use internal module IDs (M14-M22+) that don't map 1:1 to Roa
 - [x]  Section Manager (CRITICAL) ✅
 - [x]  Edit Tracker ✅
 - [x]  Learning Database ✅
-- [x]  File-Specific Generator Templates (All 8) ✅
+- [x]  File-Specific Generator Templates (All 9) ✅
+- [x]  Codebase Dictionary ✅
 - [x]  Phase 1 Integration Guide ✅
 - [x]  Configuration Schema ✅
 - [x]  Module Build Order & Dependencies ✅
 
-**All 11 specification pages are complete. Ready for implementation.**
-
-**Timeline:** All pages complete by end of week
+**All 12 specification pages are complete. Phase 1.5 is fully implemented.**
 
 ---
 
@@ -321,7 +323,7 @@ The Phase 1.5 specs use internal module IDs (M14-M22+) that don't map 1:1 to Roa
 ```tsx
 // Phase 1 interface (UNCHANGED — do not modify)
 interface ProjectModel {
-  getTechStack(): TechStack;
+  getTechStack(): TechStackEntry[];
   toContext(options?: ContextOptions): ProjectContext;
   // ... all Phase 1 methods
 }
@@ -330,7 +332,7 @@ interface ProjectModel {
 interface PersistentProjectModel extends ProjectModel {
   saveToDb(): Promise<void>;
   loadFromDb(): Promise<void>;
-  reconcileWithFileSystem(): Promise<void>;
+  reconcileWithFileSystem(): Promise<ReconciliationResult>;
 }
 ```
 
@@ -352,9 +354,9 @@ All data (project model + learning data) lives in ONE SQLite database: `.github/
 1. ✅ Phase 1 spec is COMPLETE
 2. ✅ Phase 1.5 spec is COMPLETE (all 11 pages written)
 3. ✅ Phase 2 spec is COMPLETE (all 7 pages written)
-4. 🤖 **START BUILDING:** Hand Phase 1 Module Build Order to Claude Code (start with Step 1: types.ts + extension.ts)
-5. After Phase 1 build complete → Build Phase 1.5 (follow Phase 1.5 Module Build Order)
-6. After Phase 1.5 build complete → Build Phase 2 (follow Phase 2 Build Order)
+4. ✅ Phase 1 IMPLEMENTED
+5. ✅ Phase 1.5 IMPLEMENTED
+6. 🤖 **NEXT:** Build Phase 2 (follow Phase 2 Build Order)
 7. 🧪 Integration testing at each phase boundary
 8. 🚀 Ship v1.0
 
@@ -362,44 +364,22 @@ All data (project model + learning data) lives in ONE SQLite database: `.github/
 
 **Created:** April 2026  
 
-**Status:** 🚀 READY TO START SPEC WRITING  
+**Status:** ✅ Phase 1 & Phase 1.5 IMPLEMENTED — Phase 2 next  
 
-**Next Update:** After each spec page is complete
+**Last Updated:** 2026-04-12
 
-[🏗️ Phase 1.5 Architecture Overview](%F0%9F%94%84%20Phase%201%205%20Implementation%20Specification%20%E2%80%94%20Master%20/%F0%9F%8F%97%EF%B8%8F%20Phase%201%205%20Architecture%20Overview%2033fc821ae63c811bafaadbb2e5c16495.md)
+## Related Specification Pages
 
-[👁️ File Watcher Manager Specification](%F0%9F%94%84%20Phase%201%205%20Implementation%20Specification%20%E2%80%94%20Master%20/%F0%9F%91%81%EF%B8%8F%20File%20Watcher%20Manager%20Specification%2033fc821ae63c81ddaae3d249e9902b90.md)
-
-[🏷️ Section Manager Specification](%F0%9F%94%84%20Phase%201%205%20Implementation%20Specification%20%E2%80%94%20Master%20/%F0%9F%8F%B7%EF%B8%8F%20Section%20Manager%20Specification%2033fc821ae63c81d6ba94d400dc7b2c63.md)
-
-[📋 Comprehensive Review: Phase 1 & Phase 1.5 Specs](%F0%9F%94%84%20Phase%201%205%20Implementation%20Specification%20%E2%80%94%20Master%20/%F0%9F%93%8B%20Comprehensive%20Review%20Phase%201%20&%20Phase%201%205%20Specs%2033fc821ae63c815bb5e4c8d75467ba7d.md)
-
-[🔴 BLOCKING: File Watcher API Restructuring (FW-1)](%F0%9F%94%84%20Phase%201%205%20Implementation%20Specification%20%E2%80%94%20Master%20/%F0%9F%94%B4%20BLOCKING%20File%20Watcher%20API%20Restructuring%20(FW-1)%2033fc821ae63c81669b67fbb9bf13fb12.md)
-
-[🔴 BLOCKING: Section Manager Merge Algorithm (SM-1)](%F0%9F%94%84%20Phase%201%205%20Implementation%20Specification%20%E2%80%94%20Master%20/%F0%9F%94%B4%20BLOCKING%20Section%20Manager%20Merge%20Algorithm%20(SM-1)%2033fc821ae63c81949db8cfff7a1dea95.md)
-
-[🔴 BLOCKING: Project Model Persistence Spec Needed (M14)](%F0%9F%94%84%20Phase%201%205%20Implementation%20Specification%20%E2%80%94%20Master%20/%F0%9F%94%B4%20BLOCKING%20Project%20Model%20Persistence%20Spec%20Needed%20(%2033fc821ae63c816ea9dace5766bbea52.md)
-
-[🔄 Issues & Fixes Status Tracking Dashboard](%F0%9F%94%84%20Phase%201%205%20Implementation%20Specification%20%E2%80%94%20Master%20/%F0%9F%94%84%20Issues%20&%20Fixes%20Status%20Tracking%20Dashboard%2033fc821ae63c81fb9d92f5393daf109e.md)
-
-[🟢 Additional Issues: SHOULD FIX & Nice-to-Haves](%F0%9F%94%84%20Phase%201%205%20Implementation%20Specification%20%E2%80%94%20Master%20/%F0%9F%9F%A2%20Additional%20Issues%20SHOULD%20FIX%20&%20Nice-to-Haves%2033fc821ae63c818cad8ce0b511847b10.md)
-
-[🖯 Implementation Roadmap & Weekly Checklist](%F0%9F%94%84%20Phase%201%205%20Implementation%20Specification%20%E2%80%94%20Master%20/%F0%9F%96%AF%20Implementation%20Roadmap%20&%20Weekly%20Checklist%2033fc821ae63c812dbe30c489c97914bc.md)
-
-[🚀 Phase 1.5 Master Review & Execution Guide](%F0%9F%94%84%20Phase%201%205%20Implementation%20Specification%20%E2%80%94%20Master%20/%F0%9F%9A%80%20Phase%201%205%20Master%20Review%20&%20Execution%20Guide%2033fc821ae63c81188506d8ad26ccad4f.md)
-
-[💾 Project Model Persistence Specification](%F0%9F%94%84%20Phase%201%205%20Implementation%20Specification%20%E2%80%94%20Master%20/%F0%9F%92%BE%20Project%20Model%20Persistence%20Specification%2033fc821ae63c8114a436e363ca6b499e.md)
-
-[📄 File Generator Manager Specification](%F0%9F%94%84%20Phase%201%205%20Implementation%20Specification%20%E2%80%94%20Master%20/%F0%9F%93%84%20File%20Generator%20Manager%20Specification%2033fc821ae63c81a280a2e5e4fb1b505e.md)
-
-[✏️ Edit Tracker Specification](%F0%9F%94%84%20Phase%201%205%20Implementation%20Specification%20%E2%80%94%20Master%20/%E2%9C%8F%EF%B8%8F%20Edit%20Tracker%20Specification%2033fc821ae63c813eaaf1c22cd3585e10.md)
-
-[📚 Learning Database Specification](%F0%9F%94%84%20Phase%201%205%20Implementation%20Specification%20%E2%80%94%20Master%20/%F0%9F%93%9A%20Learning%20Database%20Specification%2033fc821ae63c81c68f66d9ab88d5a61e.md)
-
-[🔄 Phase 1 Integration: Module Changes](%F0%9F%94%84%20Phase%201%205%20Implementation%20Specification%20%E2%80%94%20Master%20/%F0%9F%94%84%20Phase%201%20Integration%20Module%20Changes%2033fc821ae63c8153a451d0d0ca85d59e.md)
-
-[📊 Phase 1.5 Module Build Order & Dependencies](%F0%9F%94%84%20Phase%201%205%20Implementation%20Specification%20%E2%80%94%20Master%20/%F0%9F%93%8A%20Phase%201%205%20Module%20Build%20Order%20&%20Dependencies%2033fc821ae63c81419585d003b0ca329f.md)
-
-[📦 File-Specific Generator Templates (All 8)](%F0%9F%94%84%20Phase%201%205%20Implementation%20Specification%20%E2%80%94%20Master%20/%F0%9F%93%A6%20File-Specific%20Generator%20Templates%20(All%208)%2033fc821ae63c81c0bcd7feca0f27f004.md)
-
-[⚙️ Phase 1.5 Configuration Schema](%F0%9F%94%84%20Phase%201%205%20Implementation%20Specification%20%E2%80%94%20Master%20/%E2%9A%99%EF%B8%8F%20Phase%201%205%20Configuration%20Schema%2033fc821ae63c814f9131df5078e2eff2.md)
+- [Phase 1.5 Architecture Overview](Phase%201%205%20Architecture%20Overview.md)
+- [File Watcher Manager Specification](../04_Implementation_Specs_Phase_1.5/File%20Watcher%20Manager%20Specification.md)
+- [Section Manager Specification](../04_Implementation_Specs_Phase_1.5/Section%20Manager%20Specification.md)
+- [Issues & Fixes Status Tracking Dashboard](Issues%20&%20Fixes%20Status%20Tracking%20Dashboard.md)
+- [Implementation Roadmap & Weekly Checklist](../01_Product_Strategy/Implementation%20Roadmap%20&%20Weekly%20Checklist.md)
+- [Phase 1.5 Master Review & Execution Guide](Phase%201%205%20Master%20Review%20&%20Execution%20Guide.md)
+- [Project Model Persistence Specification](../04_Implementation_Specs_Phase_1.5/Project%20Model%20Persistence%20Specification.md)
+- [File Generator Manager Specification](../04_Implementation_Specs_Phase_1.5/File%20Generator%20Manager%20Specification.md)
+- [Edit Tracker Specification](../04_Implementation_Specs_Phase_1.5/Edit%20Tracker%20Specification.md)
+- [Learning Database Specification](../04_Implementation_Specs_Phase_1.5/Learning%20Database%20Specification.md)
+- [Codebase Dictionary Specification](../04_Implementation_Specs_Phase_1.5/Codebase%20Dictionary%20Specification.md)
+- [Phase 1.5 Module Build Order & Dependencies](../03_Implementation_Specs_Phase_1/Phase%201%205%20Module%20Build%20Order%20&%20Dependencies.md)
+- [File-Specific Generator Templates (All 9)](../04_Implementation_Specs_Phase_1.5/File-Specific%20Generator%20Templates.md)

@@ -38,9 +38,9 @@
 
 ---
 
-## 🟡 MUST FIX (Before build starts)
+## 🟢 MUST FIX (All Resolved)
 
-**Status:** 6 issues identified  
+**Status:** 7/7 resolved ✅  
 
 **Effort to Fix:** ~8-10 hours  
 
@@ -58,9 +58,9 @@
 
 ---
 
-## 🟢 SHOULD FIX (During/after build)
+## 🟢 SHOULD FIX (All Resolved)
 
-**Status:** 11 issues identified  
+**Status:** 11/11 resolved ✅  
 
 **Effort to Fix:** ~12-15 hours  
 
@@ -76,7 +76,7 @@
 | **PERF-2** | Math | Architecture Overview | 0.5h | ✅ RESOLVED | Latency budget math verified |
 | **PERF-3** | Linter | All specs | 2h | ✅ RESOLVED | Async I/O enforced via ESLint rule `no-sync-functions` |
 | **A2** | Numbering | All specs | 0.5h | ✅ RESOLVED | Canonical module IDs: M15 (File Watcher), M16 (Project Model Persistence), M19 (File Generator Manager), M22 (Section Manager) |
-| **Additional** | Generator specs | M20-27 | 4-5h | ✅ RESOLVED | See `02_Technical_Architecture/File-Specific Generator Templates All 8.md` |
+| **Additional** | Generator specs | M25-M32 | 4-5h | ✅ RESOLVED | See `02_Technical_Architecture/File-Specific Generator Templates All 8.md` |
 | **Additional** | Phase 1 Integration | All Phase 1 specs | 1h | ✅ RESOLVED | Intent classifier contract verified |
 | **Additional** | Edit Tracker | M21 | 3-4h | ✅ RESOLVED | See `Edit Tracker Specification.md` |
 | **Additional** | Learning Database | M23 | 3-4h | ✅ RESOLVED | See `Learning Database Specification.md` |
@@ -110,51 +110,45 @@
 ### Performance & Architecture
 
 - ✅ **PERF-1:** Budgets — generators < 2s
-- ⏳ **PERF-2:** Latency math — verify
-- 📝 **PERF-3:** Async I/O enforcement — linter
+- ✅ **PERF-2:** Latency math — verified
+- ✅ **PERF-3:** Async I/O enforcement — linter
 - ✅ **BC-1:** Activation boundary — documented
-- 📝 **BC-2:** ProjectModel interface — extension pattern
+- ✅ **BC-2:** ProjectModel interface — extension pattern
 
-### Missing Specifications
+### Missing Specifications (All Resolved)
 
-- 🔴 **A1:** BLOCKING — Project Model Persistence (M14)
-- 📝 M19: File Generator Manager
-- 📝 M20-27: 8 file-specific generators
-- 📝 M21: Edit Tracker
-- 📝 M23: Learning Database
-- 📝 Phase 1 Integration Guide
+- ✅ **A1:** Project Model Persistence (M16) — full spec created
+- ✅ M19: File Generator Manager — spec complete
+- ✅ M25-M32: 8 file-specific generators — specs complete
+- ✅ M21: Edit Tracker — spec complete
+- ✅ M23: Learning Database — spec complete
+- ✅ Phase 1 Integration Guide — spec complete
 
 ---
 
-## Fix Priority Order
+## Fix Priority Order (All Complete)
 
-### Batch 1: BLOCKING (Start immediately)
+### Batch 1: BLOCKING — ✅ All Resolved
 
-1. **Create M14 spec** (4-5h) — Project Model Persistence
-    - Finish: Before starting any other work
-    - Blocking: Everything else
-2. **Fix FW-1** (4-5h) — File Watcher API restructuring
-    - Finish: After M14 is clear
-    - Blocking: M15 implementation
-3. **Fix SM-1** (2-3h) — Section Manager merge algorithm
-    - Finish: Before M22 implementation
-    - Risk: Data loss if wrong
+1. ✅ **Created M16 spec** (4-5h) — Project Model Persistence (canonical ID M16, was M14)
+2. ✅ **Fixed FW-1** (4-5h) — File Watcher API restructuring
+3. ✅ **Fixed SM-1** (2-3h) — Section Manager merge algorithm
 
-### Batch 2: MUST FIX (Before build starts)
+### Batch 2: MUST FIX — ✅ All Resolved
 
-1. **Verify C4** (1h) — Intent classifier in Phase 1 specs
-2. **Fix FW-2** (2h) — Git checkout optimization
-3. **Fix FW-4** (1h) — Startup reconciliation
-4. **Fix SM-3** (1h) — Backup file strategy
-5. **Fix SM-4** (2h) — Add critical tests
-6. **Fix BC-2** (1h) — ProjectModel interface extension
+1. ✅ **Verified C4** (1h) — Intent classifier in Phase 1 specs
+2. ✅ **Fixed FW-2** (2h) — Git checkout optimization
+3. ✅ **Fixed FW-4** (1h) — Startup reconciliation
+4. ✅ **Fixed SM-3** (1h) — Backup file strategy
+5. ✅ **Fixed SM-4** (2h) — Add critical tests
+6. ✅ **Fixed BC-2** (1h) — ProjectModel interface extension
 
-### Batch 3: SHOULD FIX (During/after build)
+### Batch 3: SHOULD FIX — ✅ All Resolved
 
-1. **Create M19-27** (7-8h) — File Generator Manager + 8 generators
-2. **Create M21** (3-4h) — Edit Tracker spec
-3. **Create M23** (3-4h) — Learning Database spec
-4. **Fix remaining items** (remaining SHOULD FIX)
+1. ✅ **Created M19-27** (7-8h) — File Generator Manager + 8 generators
+2. ✅ **Created M21** (3-4h) — Edit Tracker spec
+3. ✅ **Created M23** (3-4h) — Learning Database spec
+4. ✅ **Fixed remaining items** (remaining SHOULD FIX)
 
 ---
 
@@ -164,7 +158,7 @@
 
 ```
 Batch 1 (BLOCKING):        10-13 hours
-  - M14 spec:             4-5 hours
+  - M16 spec:             4-5 hours
   - FW-1 fix:             4-5 hours
   - SM-1 fix:             2-3 hours
 
@@ -206,9 +200,9 @@ GRAND TOTAL:              87-104 hours (~2-2.5 weeks with parallelization)
 
 For each blocking issue, there's a detailed page:
 
-- 🔴 [BLOCKING: File Watcher API Restructuring (FW-1)](%F0%9F%94%B4%20BLOCKING%20File%20Watcher%20API%20Restructuring%20(FW-1)%2033fc821ae63c81669b67fbb9bf13fb12.md)
-- 🔴 [BLOCKING: Section Manager Merge Algorithm (SM-1)](%F0%9F%94%B4%20BLOCKING%20Section%20Manager%20Merge%20Algorithm%20(SM-1)%2033fc821ae63c81949db8cfff7a1dea95.md)
-- 🔴 [BLOCKING: Project Model Persistence Spec Needed (M14)](%F0%9F%94%B4%20BLOCKING%20Project%20Model%20Persistence%20Spec%20Needed%20(%2033fc821ae63c816ea9dace5766bbea52.md)
+- ✅ [RESOLVED: File Watcher API Restructuring (FW-1)](../04_Implementation_Specs_Phase_1.5/ARCHIVED_BLOCKING/BLOCKING%20File%20Watcher%20API%20Restructuring%20FW-1.md)
+- ✅ [RESOLVED: Section Manager Merge Algorithm (SM-1)](../04_Implementation_Specs_Phase_1.5/ARCHIVED_BLOCKING/BLOCKING%20Section%20Manager%20Merge%20Algorithm%20SM-1.md)
+- ✅ [RESOLVED: Project Model Persistence Spec Needed (M16)](../04_Implementation_Specs_Phase_1.5/ARCHIVED_BLOCKING/BLOCKING%20Project%20Model%20Persistence%20Spec%20Needed.md)
 
 Each page includes:
 
@@ -222,29 +216,20 @@ Each page includes:
 
 ## Risk Assessment
 
-### Highest Risk: Section Manager (SM-1)
+### Section Manager (SM-1) — MITIGATED
 
 **Data Loss Risk:** Merge algorithm affects whether developer edits are preserved  
+**Resolution:** "Append Below" strategy implemented and tested. Exhaustive test coverage in place.
 
-**Confidence:** High that "Append Below" is correct (aligned with PDD/TAD)  
-
-**Mitigation:** Exhaustive test coverage, peer review, manual testing
-
-### High Risk: File Watcher (FW-1)
+### File Watcher (FW-1) — MITIGATED
 
 **API Risk:** VS Code FileSystemWatcher has different event model than chokidar  
+**Resolution:** FileSystemWatcher API fully implemented. Tested in Remote Dev and edge cases covered.
 
-**Confidence:** High that FileSystemWatcher is correct (foundation docs specify it)  
-
-**Mitigation:** Document API differences clearly, test in Remote Dev, test edge cases
-
-### Medium Risk: Project Model Persistence (M14)
+### Project Model Persistence (M16) — MITIGATED
 
 **Database Risk:** SQLite schema design, migration from Phase 1  
-
-**Confidence:** Medium (new spec, needs careful design)  
-
-**Mitigation:** Clear spec, thorough testing, crash recovery validation
+**Resolution:** Full spec created, implemented, and tested with crash recovery validation.
 
 ---
 
@@ -266,22 +251,22 @@ Once all issues are addressed:
 
 **Immediate (Today):**
 
-1. Create M14: Project Model Persistence spec
-2. Start FW-1: File Watcher API restructuring
+1. ✅ Created M16: Project Model Persistence spec
+2. ✅ Completed FW-1: File Watcher API restructuring
 
 **This Week:**
 
-1. Complete M14 spec
-2. Complete FW-1 fixes
-3. Complete SM-1 fixes
-4. Fix MUST FIX issues (Batch 2)
+1. ✅ Completed M16 spec
+2. ✅ Complete FW-1 fixes
+3. ✅ Complete SM-1 fixes
+4. ✅ Fix MUST FIX issues (Batch 2)
 
 **Next Week:**
 
-1. Create remaining specs (M19-27, M21, M23)
-2. Hand off to AI agents
-3. Build Phase 1.5
+1. ✅ Created remaining specs (M19-27, M21, M23)
+2. ✅ Handed off to AI agents
+3. ✅ Built Phase 1.5
 
 ---
 
-**Overall Status:** 🟡 CRITICAL PATH IDENTIFIED (need ~10-13 hours of spec work to unblock AI agents)
+**Overall Status:** 🟢 ALL ISSUES RESOLVED — Phase 1 & Phase 1.5 fully implemented (2026-04-12)

@@ -18,6 +18,8 @@
 
 **Estimated Build Time:** 4-5 hours  
 
+**Implementation Status:** ✅ COMPLETE — Implemented as of 2026-04-12
+
 ---
 
 ## Responsibility
@@ -125,7 +127,7 @@ Detect file system changes and notify the project model updater, which triggers 
 
 ### Classification Algorithm
 
-```jsx
+```ts
 function classifyChange(filePath, eventType) {
   // eventType: 'add' | 'change' | 'unlink' | 'addDir' | 'unlinkDir'
   
@@ -180,7 +182,7 @@ function classifyChange(filePath, eventType) {
     priority: 'LOW',
     triggers: []
   };
-end
+}
 ```
 
 ### Change Types
@@ -226,7 +228,7 @@ function setupDebouncing() {
       pendingEvents.clear();
     }, 500ms);
   };
-end
+}
 
 function processCollectedEvents(events) {
   // 1. Deduplicate
@@ -243,7 +245,7 @@ function processCollectedEvents(events) {
   for (const [changeType, events] of byType) {
     dispatcher.dispatch(changeType, events);
   }
-end
+}
 ```
 
 ### Event Deduplication
@@ -276,7 +278,7 @@ function deduplicateEvents(events) {
   }
   
   return Array.from(seen.values());
-end
+}
 ```
 
 ---
@@ -303,7 +305,7 @@ function dispatch(changeType, events) {
       break;
     
     case 'USER_EDIT':
-      editTracker.recordEdit(events);
+      for (const event of events) { editTracker.trackEdit(event.filePath); }
       break;
     
     case 'SOURCE_ADDITION':
@@ -315,7 +317,7 @@ function dispatch(changeType, events) {
       // Ignore
       break;
   }
-end
+}
 ```
 
 ---
@@ -365,7 +367,7 @@ function setupWatcherHealthCheck() {
   watcher.on('all', () => {
     lastEventTime = now();
   });
-end
+}
 ```
 
 ### Scenario 3: Large Batch of Changes (e.g., git checkout)
@@ -383,7 +385,7 @@ function processCollectedEvents(events) {
   }
   
   // Normal processing...
-end
+}
 ```
 
 ### Scenario 4: Out of Memory / Watcher Limits
@@ -406,7 +408,7 @@ if (watchedPathCount > config.maxWatchedPaths) {
 
 For large workspaces or when native watchers fail:
 
-```jsx
+```ts
 function startPollingWatcher() {
   const pollInterval = 5000ms; // 5 seconds, configurable
   const lastState = new Map<string, {mtime, size}>();
@@ -456,7 +458,7 @@ function startPollingWatcher() {
     
     lastState = currentState;
   }, pollInterval);
-end
+}
 ```
 
 **Performance note:** Polling is slower but reliable. Use native watchers when possible.
@@ -769,7 +771,7 @@ describe('File Watcher Integration', () => {
 
 ## Build Prompt for AI Agent
 
-```jsx
+```ts
 Build the File Watcher Manager module (M15) according to this spec.
 
 Key requirements:
@@ -798,6 +800,6 @@ Verification criteria:
 
 ---
 
-**Next Module:** M16 - Project Model Persistence (extends Phase 1 project model with SQLite)
+**Next Module:** M22 - Section Manager (detects section ownership, computes hashes, merges human edits)
 
-**Critical Dependency:** This module must work before building generators (M20+)
+**Critical Dependency:** This module must work before building generators (M25+)

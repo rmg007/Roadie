@@ -1,4 +1,20 @@
 # Build Prompt: Codebase Dictionary (Phase 1.5 Addition)
+
+**Implementation Status:** ✅ COMPLETE — Implemented as of 2026-04-12
+
+## Module Identity
+
+| Field | Value |
+|---|---|
+| **Module ID** | M24 |
+| **File Location** | `src/dictionary/entity-writer.ts`, `src/dictionary/relationship-extractor.ts`, `src/dictionary/context-builder.ts`, `src/dictionary/dictionary-generator.ts` |
+| **Depends On** | Project Model Persistence (M16), Learning Database (M23) |
+| **Used By** | File Generator Manager (M19), Agent Spawner (M7) |
+| **Complexity** | Medium |
+| **Estimated Build Time** | 4-6 hours |
+
+---
+
 You are building the Codebase Dictionary feature for the Roadie VS Code extension.
 This is an additive Phase 1.5 module. Phase 1 and Phase 1.5 must continue
 working unchanged after this build. Read 00_START_HERE.md before proceeding.
@@ -109,7 +125,7 @@ For `lineNumber`: count newlines before the match position.
 ### Relationship Extraction
 
 After extracting entities, scan import statements in the file:
-/import\s+{([^}]+)}\s+from\s+'"['"]/g
+/import\s+\{([^}]+)\}\s+from\s+['"]([^'"]+)['"]/g
 
 For each imported name that matches a known entity in the database,
 write an `imports` relationship from the current file's entities to

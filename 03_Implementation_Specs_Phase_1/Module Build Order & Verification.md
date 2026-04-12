@@ -32,10 +32,10 @@ npm run lint # No errors
 
 **Definition of Done:**
 
-- [ ]  All 50+ types exported from `types.ts`
-- [ ]  All types have JSDoc comments
-- [ ]  No circular imports
-- [ ]  File builds cleanly
+- [x]  All 50+ types exported from `types.ts`
+- [x]  All types have JSDoc comments
+- [x]  No circular imports
+- [x]  File builds cleanly
 
 ---
 
@@ -70,11 +70,11 @@ F5 in VS Code # Open Extension Development Host
 
 **Definition of Done:**
 
-- [ ]  Extension Development Host launches with F5
-- [ ]  @roadie appears in chat agent dropdown
-- [ ]  Message to @roadie is echoed back
-- [ ]  Status bar displays correctly
-- [ ]  No console errors
+- [x]  Extension Development Host launches with F5
+- [x]  @roadie appears in chat agent dropdown
+- [x]  Message to @roadie is echoed back
+- [x]  Status bar displays correctly
+- [x]  No console errors
 
 ---
 
@@ -349,12 +349,12 @@ npm run test
 
 **Definition of Done:**
 
-- [ ] `class MockLanguageModelChat` exists in `test/mocks/mock-language-model.ts` — exact shape above
-- [ ] `MockCall` interface has fields **in this exact order**: `prompt`, `modelFamily`, `tools`, `timestamp`
-- [ ] All 4 fixture JSON files exist in `test/fixtures/` with the exact field names shown above
-- [ ] `MockLanguageModelChat` supports all 4 modes: `success`, `throw`, `timeout`, `partial`
-- [ ] `reset()` clears `calls[]` — downstream `beforeEach()` hooks call this
-- [ ] `MockChatResponseStream.captured` records all `button()` calls (needed by HITL tests)
+- [x] `class MockLanguageModelChat` exists in `test/mocks/mock-language-model.ts` — exact shape above
+- [x] `MockCall` interface has fields **in this exact order**: `prompt`, `modelFamily`, `tools`, `timestamp`
+- [x] All 4 fixture JSON files exist in `test/fixtures/` with the exact field names shown above
+- [x] `MockLanguageModelChat` supports all 4 modes: `success`, `throw`, `timeout`, `partial`
+- [x] `reset()` clears `calls[]` — downstream `beforeEach()` hooks call this
+- [x] `MockChatResponseStream.captured` records all `button()` calls (needed by HITL tests)
 
 
 
@@ -381,11 +381,11 @@ npm run test src/engine/model-resolver.test.ts
 
 **Definition of Done:**
 
-- [ ]  free tier maps to available models (e.g. GPT-4.1 or GPT-5 mini — actual names resolved at runtime via `vscode.lm.selectChatModels()`)
-- [ ]  standard tier maps to available models (e.g. Claude Sonnet or GPT-5.2)
-- [ ]  premium tier maps to available models (e.g. Claude Opus)
-- [ ]  Fallback logic works (standard → free if standard unavailable)
-- [ ]  8+ unit tests
+- [x]  free tier maps to available models (e.g. GPT-4.1 or GPT-5 mini — actual names resolved at runtime via `vscode.lm.selectChatModels()`)
+- [x]  standard tier maps to available models (e.g. Claude Sonnet or GPT-5.2)
+- [x]  premium tier maps to available models (e.g. Claude Opus)
+- [x]  Fallback logic works (standard → free if standard unavailable)
+- [x]  8+ unit tests
 
 ---
 
@@ -419,14 +419,14 @@ npm run test src/classifier/
 
 **Definition of Done:**
 
-- [ ]  Local classifier achieves ≥90% accuracy on 100+ test cases
-- [ ]  All 8 intents detectable
-- [ ]  Ambiguous prompts produce confidence ≤0.6
-- [ ]  Negative signals correctly reduce confidence
-- [ ]  LLM fallback: `getClassificationPromptPrefix()` returns valid prefix
-- [ ]  LLM fallback: `parseClassification()` extracts intent from response
-- [ ]  No `classifyWithLLM` method exists (uses double-duty pattern)
-- [ ]  <10ms latency for local classifier
+- [x]  Local classifier achieves ≥90% accuracy on 100+ test cases
+- [x]  All 8 intents detectable
+- [x]  Ambiguous prompts produce confidence ≤0.6
+- [x]  Negative signals correctly reduce confidence
+- [x]  LLM fallback: `getClassificationPromptPrefix()` returns valid prefix
+- [x]  LLM fallback: `parseClassification()` extracts intent from response
+- [x]  No `classifyWithLLM` method exists (uses double-duty pattern)
+- [x]  <10ms latency for local classifier
 
 ---
 
@@ -456,14 +456,14 @@ npm run test src/engine/step-executor.test.ts
 
 **Definition of Done:**
 
-- [ ]  4-step sequential workflow completes with mocks
-- [ ]  Step results passed to next step
-- [ ]  Retry: step fails attempt 1, succeeds attempt 2 with refined prompt
-- [ ]  Escalation: step fails free tier, succeeds standard tier
-- [ ]  3 consecutive failures → PAUSED state
-- [ ]  Cancellation stops at step boundary
-- [ ]  Timeout enforced
-- [ ]  15+ unit tests
+- [x]  4-step sequential workflow completes with mocks
+- [x]  Step results passed to next step
+- [x]  Retry: step fails attempt 1, succeeds attempt 2 with refined prompt
+- [x]  Escalation: step fails free tier, succeeds standard tier
+- [x]  3 consecutive failures → PAUSED state
+- [x]  Cancellation stops at step boundary
+- [x]  Timeout enforced
+- [x]  15+ unit tests
 
 ---
 
@@ -492,13 +492,13 @@ npm run test src/spawner/
 
 **Definition of Done:**
 
-- [ ]  Spawned agent receives correct three-layer prompt
-- [ ]  Research step has read-only tools
-- [ ]  Implementation step has read/write tools
-- [ ]  spawnParallel: 3 agents run concurrently
-- [ ]  One failing parallel branch doesn't block others
-- [ ]  Token usage tracked
-- [ ]  10+ unit tests
+- [x]  Spawned agent receives correct three-layer prompt
+- [x]  Research step has read-only tools
+- [x]  Implementation step has read/write tools
+- [x]  spawnParallel: 3 agents run concurrently
+- [x]  One failing parallel branch doesn't block others
+- [x]  Token usage tracked
+- [x]  10+ unit tests
 
 ---
 
@@ -531,12 +531,12 @@ npm run test src/analyzer/
 
 **Definition of Done:**
 
-- [ ]  Analyzing a Next.js + Prisma project detects: TypeScript, Next.js, Prisma, pnpm
-- [ ]  SQLite database created at correct path
-- [ ]  Model loads from SQLite on re-activation
-- [ ]  toContext() produces readable serialized output
-- [ ]  Directory scanner ignores node_modules, .git, dist, build, coverage
-- [ ]  12+ unit tests
+- [x]  Analyzing a Next.js + Prisma project detects: TypeScript, Next.js, Prisma, pnpm
+- [x]  SQLite database created at correct path
+- [x]  Model loads from SQLite on re-activation
+- [x]  toContext() produces readable serialized output
+- [x]  Directory scanner ignores node_modules, .git, dist, build, coverage
+- [x]  12+ unit tests
 
 ---
 
@@ -566,12 +566,12 @@ npm run test src/analyzer/
 
 **Definition of Done:**
 
-- [ ]  Bug-fix workflow definition complete (8 steps)
-- [ ]  Chat Participant routes bug_fix → workflow engine
-- [ ]  Progress streamed to chat ("Locating...", "Diagnosing...", etc.)
-- [ ]  Step 4 (tests) runs project test command
-- [ ]  Escalation on test failure works
-- [ ]  Manual test succeeds
+- [x]  Bug-fix workflow definition complete (8 steps)
+- [x]  Chat Participant routes bug_fix → workflow engine
+- [x]  Progress streamed to chat ("Locating...", "Diagnosing...", etc.)
+- [x]  Step 4 (tests) runs project test command
+- [x]  Escalation on test failure works
+- [x]  Manual test succeeds
 
 ---
 
@@ -602,12 +602,12 @@ npm run test src/generator/
 
 **Definition of Done:**
 
-- [ ]  [copilot-instructions.md](http://copilot-instructions.md) generated after workflow
-- [ ]  [AGENTS.md](http://AGENTS.md) generated
-- [ ]  Files contain section markers
-- [ ]  Regeneration with identical content doesn't touch files
-- [ ]  .github/.roadie/.gitignore exists
-- [ ]  8+ tests
+- [x]  copilot-instructions.md generated after workflow
+- [x]  AGENTS.md generated
+- [x]  Files contain section markers
+- [x]  Regeneration with identical content doesn't touch files
+- [x]  .github/.roadie/.gitignore exists
+- [x]  8+ tests
 
 ---
 
@@ -648,12 +648,12 @@ Manual test each workflow in Extension Dev Host
 
 **Definition of Done (per workflow):**
 
-- [ ]  Workflow definition complete
-- [ ]  All steps have prompt templates
-- [ ]  Correct model tiers assigned
-- [ ]  Parallel/sequential/conditional logic correct
-- [ ]  Manual test succeeds
-- [ ]  5+ step tests
+- [x]  Workflow definition complete
+- [x]  All steps have prompt templates
+- [x]  Correct model tiers assigned
+- [x]  Parallel/sequential/conditional logic correct
+- [x]  Manual test succeeds
+- [x]  5+ step tests
 
 ---
 
@@ -682,10 +682,10 @@ npm run test src/shell/commands.test.ts
 
 **Definition of Done:**
 
-- [ ]  All configuration options working
-- [ ]  Commands registered and callable
-- [ ]  Configuration tests pass
-- [ ]  marketplace assets created (icon, README, CHANGELOG)
+- [x]  All configuration options working
+- [x]  Commands registered and callable
+- [x]  Configuration tests pass
+- [x]  marketplace assets created (icon, README, CHANGELOG)
 
 ---
 
@@ -714,10 +714,10 @@ vsce package
 
 **Definition of Done:**
 
-- [ ]  .vsix file generated
-- [ ]  Published to marketplace as Preview
-- [ ]  Installation from marketplace works
-- [ ]  All workflows functional out-of-box
+- [x]  .vsix file generated
+- [x]  Published to marketplace as Preview
+- [x]  Installation from marketplace works
+- [x]  All workflows functional out-of-box
 
 ---
 
@@ -742,12 +742,12 @@ Step 13 (publish)
 
 | Phase | Modules | Status | Est. Time |
 | --- | --- | --- | --- |
-| M0 (Scaffold) | 4 | Foundation | 3h |
-| M1-M4 (Engine) | 6 | Core Logic | 11h |
-| M5 (Model) | 4 | Lazy State | 5h |
-| M6-M12 (Workflows) | 7 + updates | Feature Complete | 12h |
-| M13-14 (Polish + Publish) | 2 | Marketplace | 2.5h |
-| **TOTAL** | **14 modules** | **Phase 1 Complete** | **~33.5 hours** |
+| M0 (Scaffold) | 4 | ✅ Complete | 3h |
+| M1-M4 (Engine) | 6 | ✅ Complete | 11h |
+| M5 (Model) | 4 | ✅ Complete | 5h |
+| M6-M12 (Workflows) | 7 + updates | ✅ Complete | 12h |
+| M13-14 (Polish + Publish) | 2 | ✅ Complete | 2.5h |
+| **TOTAL** | **14 modules** | **✅ Phase 1 Complete** | **~33.5 hours** |
 
 ---
 

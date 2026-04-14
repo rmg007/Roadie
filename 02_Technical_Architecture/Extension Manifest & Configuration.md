@@ -13,7 +13,7 @@
   "name": "roadie",
   "displayName": "Roadie — The Invisible AI Workflow Engine",
   "description": "VS Code extension that makes GitHub Copilot smarter. Transforms chat into autonomous workflows: bug fix, feature development, refactoring, code review, documentation, dependency management, onboarding.",
-  "version": "0.8.0",
+  "version": "0.5.0",
   "publisher": "roadie",
   "engines": {
     "vscode": "^1.93.0",
@@ -35,7 +35,8 @@
   ],
   "activationEvents": [
     "onChat:roadie",
-    "workspaceContains:.github/.roadie/project-model.db"
+    "workspaceContains:.github/.roadie/project-model.db",
+    "onStartupFinished"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -62,6 +63,21 @@
         "command": "roadie.reset",
         "title": "Roadie: Reset",
         "description": "Delete local database and reset Roadie"
+      },
+      {
+        "command": "roadie.stats",
+        "title": "Roadie: Show Stats",
+        "description": "Show workflow history statistics from the learning database"
+      },
+      {
+        "command": "roadie.enableWorkflowHistory",
+        "title": "Roadie: Enable Workflow History",
+        "description": "Start recording every @roadie run to the local learning database"
+      },
+      {
+        "command": "roadie.disableWorkflowHistory",
+        "title": "Roadie: Disable Workflow History",
+        "description": "Stop recording @roadie runs to the local learning database"
       }
     ],
     "configuration": {
@@ -127,7 +143,7 @@
     "test": "vitest run",
     "test:watch": "vitest watch",
     "test:coverage": "vitest run --coverage",
-    "package": "vsce package --no-dependencies",
+    "package": "vsce package",
     "publish": "vsce publish",
     "prepublish:test": "npm run test && npm run lint && npm run build"
   },
@@ -150,13 +166,13 @@
     "typescript": "^5.2.0",
     "vitest": "^0.34.0"
   },
-  "files": [
-    "out",
-    "package.json",
-    "README.md",
-    "LICENSE"
+  "bundleDependencies": [
+    "better-sqlite3"
   ]
 }
+```
+
+> **Note:** There is no `"files"` array in `package.json`. Do NOT add one. `vsce` does not support combining `"files"` with `.vscodeignore` — it throws a fatal error. Packaging is controlled exclusively via `.vscodeignore` (see [Build & Packaging](#build--packaging) below).
 ```
 
 ---
@@ -406,11 +422,45 @@ Test suite times out after 60 seconds.
 
 **Title:** Roadie: Reset  
 
-**Trigger:** `Cmd+Shift+P` → "Roadie: Reset"  
+**Trigger:** `Ctrl+Shift+P` (Windows/Linux) / `Cmd+Shift+P` (Mac) → "Roadie: Reset"  
 
-**Action:** Delete `.github/.roadie/project-model.db` and completely reset extension state.  
+**Action:** Shows a confirmation dialog. On confirm, clears the in-memory project model. On next activation, analysis reruns from scratch.
 
 **Use Case:** Troubleshooting, uninstall prep, or starting fresh.  
+
+### roadie.stats
+
+**Title:** Roadie: Show Stats  
+
+**Trigger:** `Ctrl+Shift+P` → "Roadie: Show Stats"  
+
+**Action:** Reads workflow history stats from `LearningDatabase` and displays a summary notification. Also logs the full breakdown (by workflow type, success rate) to the Roadie Output channel.  
+
+**Fallback:** If SQLite is unavailable (in-memory-only mode), shows a notification explaining that no persistent data has been recorded yet.  
+
+### roadie.enableWorkflowHistory
+
+**Title:** Roadie: Enable Workflow History  
+
+**Trigger:** `Ctrl+Shift+P` → "Roadie: Enable Workflow History"  
+
+**Action (two steps, both happen immediately):**
+1. Writes `roadie.workflowHistory = true` to the user's global VS Code settings (persists across workspace and restarts)
+2. Hot-updates the live `LearningDatabase` instance via `learningDb.setWorkflowHistory(true)` — takes effect for the current session without a reload
+
+**No settings UI required.** Developer does not need to open VS Code Settings or edit settings.json manually.
+
+**Fallback:** If SQLite is unavailable, saves the setting but shows a warning that the database needs to initialise on next reload.
+
+### roadie.disableWorkflowHistory
+
+**Title:** Roadie: Disable Workflow History  
+
+**Trigger:** `Ctrl+Shift+P` → "Roadie: Disable Workflow History"  
+
+**Action:** Writes `roadie.workflowHistory = false` to global settings and hot-updates the live instance.
+
+**Note:** Existing records in the database are preserved. Only new workflows stop being recorded.
 
 ---
 
@@ -419,7 +469,8 @@ Test suite times out after 60 seconds.
 ```json
 "activationEvents": [
   "onChat:roadie",
-  "workspaceContains:.github/.roadie/project-model.db"
+  "workspaceContains:.github/.roadie/project-model.db",
+  "onStartupFinished"
 ]
 ```
 
@@ -427,8 +478,9 @@ Test suite times out after 60 seconds.
 
 - `onChat:roadie` — Extension activates when the developer selects `@roadie` from the chat dropdown.
 - `workspaceContains:.github/.roadie/project-model.db` — Extension activates automatically if Roadie was previously initialized in this workspace (database exists from a prior session).
+- `onStartupFinished` — Extension activates after VS Code finishes starting up, even if neither of the above events occurs. This ensures the startup analysis and `.github/` file generation always run on launch.
 
-**Lazy Activation:** Extension doesn't load until one of these conditions is met. Minimal startup impact on VS Code.
+**Why `onStartupFinished` was added:** Without it, Roadie would only activate when the user explicitly opened Chat and typed `@roadie`. The `.github/copilot-instructions.md` file would never be generated on a fresh install. `onStartupFinished` fires once after VS Code is fully ready, with no perceptible startup cost.
 
 ---
 
@@ -484,12 +536,206 @@ npm run build:watch
 npm run prepublish:test
 
 # Package into .vsix file
-npm run package
-# Output: roadie-0.8.0.vsix
+# IMPORTANT: Always use npx @vscode/vsce, NOT a global vsce installation
+npx @vscode/vsce package
+# Output: roadie-0.5.0.vsix
 
 # Publish to VS Code Marketplace
 npm run publish
 ```
+
+**Do NOT use `--no-dependencies`.** When that flag is set, `vsce` skips the `node_modules` directory entirely — it never walks it, so the `!node_modules/better-sqlite3/...` re-inclusion rules in `.vscodeignore` are never applied. The native binary ends up missing from the `.vsix`. Use plain `vsce package` and let `.vscodeignore` control exactly which `node_modules` files are included.
+
+---
+
+### tsup Build Configuration
+
+The bundler is `tsup`. Key settings in `tsup.config.ts`:
+
+```typescript
+export default defineConfig({
+  entry: ['src/extension.ts'],
+  outDir: 'out',
+  format: ['cjs'],
+  external: ['vscode', 'better-sqlite3'],     // Do NOT bundle these
+  noExternal: ['fast-glob', 'zod'],            // DO inline these into extension.js
+});
+```
+
+**Why `noExternal: ['fast-glob', 'zod']`?**  
+These are pure-JavaScript packages. Inlining them into `out/extension.js` means the `.vsix` doesn't need a `node_modules/fast-glob` or `node_modules/zod` directory at all — saving ~2 MB and eliminating packaging complexity.
+
+**Why `external: ['better-sqlite3']`?**  
+`better-sqlite3` contains a native `.node` binary (`better_sqlite3.node`). Native binaries cannot be bundled by any JavaScript bundler — they must exist as separate files on disk. The binary is included in the `.vsix` via `.vscodeignore` rules (see below).
+
+**Why `external: ['vscode']`?**  
+The `vscode` module is provided by VS Code at runtime. It is never shipped inside the `.vsix`.
+
+---
+
+### .vscodeignore Strategy
+
+`.vscodeignore` controls which files land in the `.vsix` package. Entries without `!` exclude files; entries with `!` re-include them.
+
+**The canonical, verified `.vscodeignore`:**
+
+```
+# ── Source & config (never ship) ─────────────────────────────────────────────
+src/**
+tsconfig.json
+tsup.config.ts
+tsup.config.js
+vitest.config.ts
+vitest.config.js
+.eslintrc*
+.prettierrc*
+*.test.ts
+*.spec.ts
+test/
+
+# ── Dev tooling files ─────────────────────────────────────────────────────────
+.vscode/
+.gitignore
+AGENTS.md
+
+# ── Generated .github/ files (not needed in the extension package) ────────────
+.github/
+
+# ── All node_modules excluded by default ─────────────────────────────────────
+node_modules/**
+
+# ── Re-include ONLY the essential better-sqlite3 runtime files ───────────────
+# (src/, deps/, binding.gyp stay excluded — we only need the JS wrapper + binary)
+!node_modules/better-sqlite3/package.json
+!node_modules/better-sqlite3/lib/
+!node_modules/better-sqlite3/lib/**
+!node_modules/better-sqlite3/build/
+!node_modules/better-sqlite3/build/Release/
+!node_modules/better-sqlite3/build/Release/better_sqlite3.node
+
+# ── bindings: runtime dependency of better-sqlite3 (locates the .node binary) ─
+!node_modules/bindings/
+!node_modules/bindings/package.json
+!node_modules/bindings/bindings.js
+
+# ── file-uri-to-path: runtime dependency of bindings ─────────────────────────
+!node_modules/file-uri-to-path/
+!node_modules/file-uri-to-path/package.json
+!node_modules/file-uri-to-path/index.js
+```
+
+**Result:** The `.vsix` contains ~37 files at ~1.25 MB.
+
+#### Why these three packages?
+
+When `require('better-sqlite3')` runs inside the extension, the execution chain is:
+
+```
+better-sqlite3/lib/index.js
+  → better-sqlite3/lib/database.js
+      → require('bindings')('better_sqlite3.node')   ← locates the binary
+          → require('file-uri-to-path')              ← converts file:// URIs on Windows
+```
+
+All three packages must be present in the `.vsix`. Missing any one of them produces a `Cannot find module` error at activation time.
+
+#### Why NOT `!node_modules/better-sqlite3/` (directory re-include)?
+
+Using `!node_modules/better-sqlite3/` as a pattern re-includes the entire directory contents including 9 MB of C++ source (`src/**`, `deps/sqlite3.c`) and build artifacts. Use specific file/subdirectory patterns instead — the `.vscodeignore` above is the minimum that makes `require('better-sqlite3')` work.
+
+#### CRITICAL: No `"files"` array in package.json
+
+Do NOT add a `"files"` array to `package.json`. `vsce` throws a fatal error if both exist:
+```
+ERROR: Both a .vscodeignore file and a 'files' property in package.json were found.
+```
+
+---
+
+### better-sqlite3 Version & Electron Compatibility
+
+`better-sqlite3` is a native module — the compiled binary must match VS Code's Electron/V8 version exactly. This is a hard requirement, not optional.
+
+#### Version requirements (verified)
+
+| VS Code version | Electron version | Required better-sqlite3 |
+|---|---|---|
+| 1.115.0 (April 2026) | 39.8.5 | **v12.x** (v9.x is incompatible) |
+| ≤ 1.93.x (Sept 2024) | ~31.x | v9.x may work |
+
+**Why v9 fails on Electron 39:**
+- `binding.gyp` in v9.x hardcodes `/std:c++17`, but Electron 39's V8 headers require C++20
+- v9.x uses deprecated V8 APIs (`CopyablePersistentTraits`, `AccessorGetterCallback`) that were removed in V8 12.x (bundled in Electron 35+)
+
+**v12.x fixes both:** `binding.gyp` upgraded to `/std:c++20`, and all deprecated V8 API calls were updated.
+
+#### How to find your VS Code's Electron version
+
+```bash
+# Read from VS Code's own package.json:
+# Windows default install path:
+cat "C:\Users\<you>\AppData\Local\Programs\Microsoft VS Code\<hash>\resources\app\package.json" | grep electron
+# Look for: "electron": "39.8.5"
+```
+
+Or in VS Code: **Help → About** (shows VS Code version; cross-reference with the table above).
+
+#### Rebuilding better-sqlite3 for a target Electron version
+
+Run this from the extension root before packaging:
+
+```bash
+cd C:\dev\Roadie\roadie
+
+# 1. Upgrade to a compatible version (v12+ for Electron 35+)
+npm install better-sqlite3@latest
+
+# 2. Compile the native binary against VS Code's Electron headers
+npm rebuild better-sqlite3 --runtime=electron --target=39.8.5 --dist-url=https://electronjs.org/headers
+# Replace 39.8.5 with your VS Code's actual Electron version
+
+# 3. Build and package
+npm run build
+npx @vscode/vsce package
+```
+
+The rebuild downloads the correct Electron headers from `electronjs.org` and compiles `better_sqlite3.node` against them. This binary then works inside VS Code's extension host process.
+
+**CRITICAL:** Do NOT add a `"files"` array to `package.json`. `vsce` throws a fatal error if both `"files"` in `package.json` and `.vscodeignore` are present:  
+`ERROR: Both a .vscodeignore file and a 'files' property in package.json were found.`
+
+---
+
+### Command Auto-Update Settings Pattern
+
+When a command needs to change a VS Code setting (e.g. toggling workflow history), use this two-step pattern:
+
+```typescript
+// src/shell/commands.ts
+export async function updateSetting(key: string, value: unknown): Promise<void> {
+  await vscode.workspace
+    .getConfiguration('roadie')
+    .update(key, value, vscode.ConfigurationTarget.Global);
+}
+```
+
+```typescript
+// extension.ts — inside the command callback
+onEnableWorkflowHistory: async () => {
+  // Step 1: Persist to VS Code global settings (survives window reload and restarts)
+  await updateSetting('workflowHistory', true);
+
+  // Step 2: Hot-update the live service instance (takes effect immediately, no reload needed)
+  if (learningDb) {
+    learningDb.setWorkflowHistory(true);
+    void vscode.window.showInformationMessage('Roadie: Workflow history enabled.');
+  }
+},
+```
+
+**`ConfigurationTarget.Global`** writes to the user's global `settings.json` (not the workspace `.vscode/settings.json`). This means the setting persists across all workspaces and survives VS Code restarts.
+
+**Hot-update without reload:** The service instance (`LearningDatabase`, etc.) exposes a setter method so the command's new value takes effect in the same session without requiring a window reload. The VS Code settings write is the persistence layer; the setter call is the live-session update.
 
 ---
 

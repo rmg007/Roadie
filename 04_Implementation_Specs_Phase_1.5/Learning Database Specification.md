@@ -10,9 +10,12 @@
 
 **File Location:** `src/learning/learning-database.ts`
 
-**Depends On:** Database module (M5 — shared SQLite connection)
+**Depends On:** Database module (M5 — shared SQLite connection via `RoadieDatabase.getRawDb()`)
 
-**Used By:** Edit Tracker, File Generator Manager, Workflow Engine (outcome logging)
+**Used By:**
+- `src/shell/chat-participant.ts` — calls `recordWorkflowOutcome()` after every workflow completes
+- `src/generator/file-generator.ts` — calls `recordSnapshot()` after every file write
+- `src/extension.ts` — calls `initialize()`, `getDatabaseSize()`, `setWorkflowHistory()`, `getWorkflowStats()`
 
 **Complexity:** Low-Medium (CRUD + pruning, well-defined schema)
 
@@ -73,55 +76,164 @@ CREATE TABLE IF NOT EXISTS section_hashes (
 
 ## Public Interface
 
-```tsx
-interface LearningDatabase {
-  // === File Snapshots ===
-  recordSnapshot(filePath: string, content: string, source: 'roadie' | 'human'): Promise<void>;
-  getSnapshots(filePath: string, limit?: number): Promise<FileSnapshot[]>;
-  getLatestSnapshot(filePath: string): Promise<FileSnapshot | null>;
-  
-  // === Workflow History ===
-  recordWorkflowOutcome(entry: WorkflowOutcomeInput): Promise<void>;
-  getWorkflowHistory(limit?: number): Promise<WorkflowHistoryEntry[]>;
-  getWorkflowStats(): Promise<WorkflowStats>;
-  
-  // === Section Hashes ===
-  getSectionHash(filePath: string, sectionId: string): Promise<string | null>;
-  setSectionHash(filePath: string, sectionId: string, hash: string): Promise<void>;
-  
-  // === Maintenance ===
-  prune(): Promise<PruneResult>;
-  getDatabaseSize(): Promise<number>;  // bytes
-  
+> **Implementation note:** `better-sqlite3` is fully synchronous. All methods are **synchronous** (no `async`/`Promise`). The spec originally showed `Promise<void>` return types — those are incorrect. The actual implementation uses direct return values.
+
+```typescript
+class LearningDatabase {
   // === Lifecycle ===
-  initialize(db: BetterSqlite3.Database): void;
+  initialize(db: Database.Database, config?: LearningDatabaseConfig): void;
   close(): void;
+
+  // === Hot-update (no reload required) ===
+  setWorkflowHistory(enabled: boolean): void;
+  isWorkflowHistoryEnabled(): boolean;
+
+  // === File Snapshots ===
+  recordSnapshot(filePath: string, content: string, source: 'roadie' | 'human'): void;
+  getSnapshots(filePath: string, limit?: number): FileSnapshot[];
+  getLatestSnapshot(filePath: string): FileSnapshot | null;
+
+  // === Workflow History ===
+  recordWorkflowOutcome(entry: WorkflowOutcomeInput): void;
+  getWorkflowHistory(limit?: number): WorkflowHistoryEntry[];
+  getWorkflowStats(): WorkflowStats;
+
+  // === Section Hashes ===
+  getSectionHash(filePath: string, sectionId: string): string | null;
+  setSectionHash(filePath: string, sectionId: string, hash: string): void;
+
+  // === Maintenance ===
+  prune(): PruneResult;
+  getDatabaseSize(): number;   // total row count across all three tables
+}
+
+interface LearningDatabaseConfig {
+  workflowHistory?: boolean;   // default false — workflow recording is opt-in
 }
 
 interface WorkflowOutcomeInput {
   workflowType: string;
   prompt: string;
-  status: 'completed' | 'failed' | 'cancelled';
+  status: string;              // 'completed' | 'failed' | 'cancelled'
   stepsCompleted: number;
   stepsTotal: number;
-  durationMs: number;
-  modelTiersUsed: string[];
+  durationMs?: number;
+  modelTiersUsed?: string;     // comma-separated string, e.g. "free,standard"
   errorSummary?: string;
 }
 
 interface WorkflowStats {
   totalWorkflows: number;
-  completionRate: number;       // 0.0-1.0
-  averageDuration: number;      // ms
-  tierDistribution: { free: number; standard: number; premium: number };
+  successCount: number;
+  failureCount: number;
+  successRate: number;         // 0.0-1.0
+  averageDurationMs: number;
+  byType: Record<string, { count: number; successCount: number }>;
 }
 
 interface PruneResult {
   snapshotsRemoved: number;
   historyEntriesRemoved: number;
-  bytesFreed: number;
 }
 ```
+
+### initialize() signature
+
+```typescript
+learningDb.initialize(roadieDb.getRawDb(), {
+  workflowHistory: config.workflowHistory,
+});
+```
+
+`initialize()` accepts the raw `better-sqlite3` `Database` instance (obtained from `RoadieDatabase.getRawDb()`) plus an optional config. It runs the schema DDL (`CREATE TABLE IF NOT EXISTS`) and immediately calls `prune()`.
+
+### setWorkflowHistory() — hot-update pattern
+
+```typescript
+// Called by roadie.enableWorkflowHistory command (no reload required)
+learningDb.setWorkflowHistory(true);
+
+// Called by roadie.disableWorkflowHistory command
+learningDb.setWorkflowHistory(false);
+```
+
+This updates the in-memory config flag without re-initialising the database. The change takes effect immediately for the current session. `recordWorkflowOutcome()` checks this flag on every call.
+
+---
+
+## Call Sites — Who Calls What
+
+### 1. `recordWorkflowOutcome()` — called from `chat-participant.ts`
+
+After every workflow run (success, failure, or cancellation):
+
+```typescript
+// src/shell/chat-participant.ts
+if (deps?.learningDb) {
+  try {
+    const durationMs = Date.now() - workflowStartTime;
+    const failedStep = result.stepResults.find((r) => r.status === 'failed');
+    const succeededSteps = result.stepResults.filter((r) => r.status === 'success').length;
+
+    deps.learningDb.recordWorkflowOutcome({
+      workflowType: workflow.id,          // e.g. 'bug_fix'
+      prompt: request.prompt,
+      status: result.state,               // 'completed' | 'failed' | 'cancelled'
+      stepsCompleted: succeededSteps,
+      stepsTotal: result.stepResults.length,
+      durationMs,
+      modelTiersUsed: result.modelTiersUsed.join(','),
+      errorSummary: failedStep?.error,
+    });
+  } catch (err) {
+    log.warn('Failed to persist workflow outcome', err);
+  }
+}
+```
+
+The `learningDb` is passed into `registerChatParticipant()` via its `deps` object. If it's `undefined` (SQLite unavailable), the block is silently skipped.
+
+### 2. `recordSnapshot()` — called from `file-generator.ts`
+
+After every file that is written (not skipped):
+
+```typescript
+// src/generator/file-generator.ts
+if (this.learningDb) {
+  this.learningDb.recordSnapshot(filePath, content, 'roadie');
+}
+```
+
+The `LearningDatabase` instance is injected into `FileGenerator`'s constructor as an optional parameter:
+
+```typescript
+constructor(workspaceRoot: string, learningDb?: LearningDatabase)
+```
+
+### 3. `getRawDb()` — shared connection pattern
+
+`LearningDatabase` does **not** open its own SQLite file. It receives the already-open `better-sqlite3` `Database` instance from `RoadieDatabase`:
+
+```typescript
+// src/extension.ts
+roadieDb = new RoadieDatabase(dbPath);
+
+learningDb = new LearningDatabase();
+learningDb.initialize(roadieDb.getRawDb(), {
+  workflowHistory: config.workflowHistory,
+});
+```
+
+`RoadieDatabase.getRawDb()` exposes the raw `Database` instance:
+
+```typescript
+// src/model/database.ts
+getRawDb(): Database.Database {
+  return this.db;
+}
+```
+
+This single-connection pattern means both the project model tables and the learning tables share one file and one connection — transactions, WAL mode, and VACUUM all apply to both.
 
 ---
 

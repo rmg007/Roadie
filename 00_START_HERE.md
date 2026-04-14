@@ -7,6 +7,17 @@ Roadie is a VS Code extension + standalone MCP server that acts as an "invisible
 
 ---
 
+## 🧰 Installation
+
+For end users and developers who just want to run Roadie, the implementation repo (`C:\dev\Roadie\roadie`) ships with two scripts:
+
+- `scripts/install.js` — plug-and-play installer. Run `npm run install:all` from the repo root to install the VS Code extension and register the Roadie MCP server in Claude Code and Claude Desktop configs. Supports `--skip-extension`, `--skip-mcp`, `--log-level LEVEL`, and `--uninstall`.
+- `scripts/doctor.js` — health check. Run `npm run doctor` to verify the build, MCP smoke test, extension registration, and Claude Code MCP entry. Exit 0 if all checks pass.
+
+See `07_Patterns_and_Standards/Installation & Quick Start Guide.md` for the full install/troubleshooting flow.
+
+---
+
 ## ⚡ Agent Quick Start
 
 If you are an autonomous coding agent, do exactly this:
@@ -35,6 +46,8 @@ That's it. Everything you need for Phase 1 implementation is inside this reposit
 | 7 | **`07_Patterns_and_Standards/Shared TypeScript Interfaces.md`** | All `src/types.ts` contracts — **COPY VERBATIM, DO NOT PARAPHRASE** |
 | 8 | **`07_Patterns_and_Standards/Shared Zod Schemas.md`** | Runtime validation schemas paired 1:1 with interfaces — **COPY VERBATIM** |
 | 9 | `07_Patterns_and_Standards/Implementation Patterns & Standards.md` | Coding standards, error handling, performance budgets |
+| 9.1 | `07_Patterns_and_Standards/Logging Architecture Specification.md` | `RoadieLogger`, `OutputChannel` lifecycle, log levels, singleton pattern |
+| 9.2 | `07_Patterns_and_Standards/Installation & Quick Start Guide.md` | Developer setup (F5), end-user install (.vsix), troubleshooting, workflow history opt-in |
 | 10 | `07_Patterns_and_Standards/Model Selection Strategy.md` | Tier hierarchy, `ModelResolver` implementation, `ModelUnavailableError` |
 | 11 | `07_Patterns_and_Standards/MCP Tool Definitions 10 Tools.md` | The 10 MCP tools exposed by the server |
 | 12 | `07_Patterns_and_Standards/Security and Migration Specification.md` | Security model + DB migration strategy (authoritative for both) |

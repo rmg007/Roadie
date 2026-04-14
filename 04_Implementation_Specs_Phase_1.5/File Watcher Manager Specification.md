@@ -1,805 +1,284 @@
-# 👁️ File Watcher Manager Specification
+# File Watcher Manager Specification
 
-## Monitors Workspace for Changes, Classifies Events, Dispatches to Updaters
+## Monitors Workspace for Changes, Classifies Events, Triggers Auto-Rescan
 
 ---
 
 ## Module Identity
 
-**Module ID:** M15  
+**Module ID:** M15
 
-**File Location:** `src/watcher/file-watcher-manager.ts`  
+**Files:**
+- `src/watcher/file-watcher-manager.ts` — debouncing, deduplication, batched dispatch
+- `src/watcher/change-classifier.ts` — pure classification logic (no VS Code dependency)
 
-**Depends On:** Project Model Persistence (M16), Configuration (Phase 1)  
+**Depends On:** `change-classifier`
 
-**Used By:** Project Model Updater, extension activation/deactivation  
+**Used By:** `extension.ts` (activation wiring)
 
-**Complexity:** Medium (edge cases in debouncing, classification, error handling)  
-
-**Estimated Build Time:** 4-5 hours  
-
-**Implementation Status:** ✅ COMPLETE — Implemented as of 2026-04-12
+**Implementation Status:** ✅ COMPLETE and CONNECTED — Wired into `extension.ts` as of 2026-04-14
 
 ---
 
 ## Responsibility
 
-Detect file system changes and notify the project model updater, which triggers generators. This is the "heartbeat" of passive mode.
+When a dependency file (`package.json`, lock files) or config file (`tsconfig.json`, `vite.config.*`, etc.) changes on disk, Roadie automatically:
 
-**Three critical jobs:**
+1. Detects the change via VS Code `FileSystemWatcher`
+2. Debounces and deduplicates the raw events (500 ms window)
+3. Classifies each event by type and priority
+4. Triggers a full project re-analysis (`ProjectAnalyzer.analyze()`)
+5. Regenerates `.github/` files if the analysis produces new content
 
-1. **Watch Files:** Monitor for changes using VS Code FileSystemWatcher
-2. **Classify Events:** Determine what type of change occurred
-3. **Dispatch:** Route events to appropriate updaters
+**This means Roadie stays in sync automatically.** If you switch from npm to pnpm (add `pnpm-lock.yaml`), Roadie detects the new lock file, re-runs analysis, updates all stored commands from `npm run …` to `pnpm run …`, and rewrites `.github/copilot-instructions.md` — without any manual action.
 
 ---
 
-## Watched Paths & Glob Patterns
+## Architecture
 
-### Watched (Active)
-
-```tsx
-// Dependency files (highest priority)
-"package.json"
-"package-lock.json"
-"yarn.lock"
-"pnpm-lock.yaml"
-"Gemfile" / "Gemfile.lock"      // Ruby
-"requirements.txt" / "poetry.lock" // Python
-"go.mod" / "go.sum"             // Go
-"Cargo.toml" / "Cargo.lock"     // Rust
-"composer.json" / "composer.lock" // PHP
-
-// Configuration files
-"tsconfig.json"
-"tsconfig.*.json"
-"jest.config.*"
-"vitest.config.*"
-"eslint.config.*"
-".babelrc*"
-"vite.config.*"
-"webpack.config.*"
-
-// Source code structure (watch for new directories)
-"src/"       // All changes
-"tests/" or "__tests__/" // All changes
-"components/" // etc.
-
-// GitHub config (watch for human edits)
-".github/copilot-*.md"
-".github/agents/*.yaml"
-".github/skills/*.md"
-".github/workflows/*.yml"
-// (but NOT .github/.roadie/ — that's Roadie's private data)
+```
+VS Code FileSystemWatcher (glob pattern)
+    │  onDidCreate / onDidChange / onDidDelete
+    ▼
+FileWatcherManager.handleFileEvent(filePath, type)
+    │  isIgnoredPath() → drop silently
+    │  deduplication: keep latest event per path
+    │  add+delete cancellation within window
+    │  500 ms debounce timer reset on each event
+    ▼
+FileWatcherManager.processBatch()
+    │  > 1000 events → emit FullRescanEvent sentinel
+    │  else → classifyChange() for each pending event
+    │  sort HIGH → MEDIUM → LOW
+    ▼
+BatchHandler (extension.ts)
+    │  FullRescanEvent → runRescan()
+    │  any HIGH (DEPENDENCY_CHANGE) or MEDIUM (CONFIG_CHANGE) → runRescan()
+    │  LOW only → skip
+    ▼
+runRescan()
+    ├─ ProjectAnalyzer.analyze(workspaceRoot)
+    └─ FileGenerator.generateAll(projectModel) → write .github/ files
 ```
 
-### Explicitly Ignored (Never watched)
+---
 
-```tsx
-// Version control
-".git/**"
-".gitignore"
-".gitattributes"
+## Wired-Up Glob Pattern (extension.ts)
 
-// Dependencies
-"node_modules/**"
-"vendor/**"
-"venv/**"
-".venv/**"
-"site-packages/**"
+A single `vscode.workspace.createFileSystemWatcher` covers all relevant files:
 
-// Build artifacts
-"dist/**"
-"build/**"
-"out/**"
-"target/**"
-"bin/**"
-"obj/**"
-
-// Cache
-".next/**"
-".cache/**"
-".eslintcache"
-".parcel-cache/**"
-
-// IDE
-".vscode/**"
-".idea/**"
-"*.swp"
-"*.swo"
-
-// OS
-".DS_Store"
-"Thumbs.db"
-
-// Logs
-"*.log"
-"logs/**"
-
-// Temp
-"tmp/**"
-"temp/**"
 ```
+**/{package.json,package-lock.json,pnpm-lock.yaml,yarn.lock,bun.lockb,
+    tsconfig.json,tsconfig.*.json,jest.config.*,vitest.config.*,
+    vite.config.*,webpack.config.*,rollup.config.*,.babelrc,.eslintrc*,.prettierrc*}
+```
+
+VS Code's `FileSystemWatcher` uses the workspace root as the base, so only files inside the open workspace folder are watched. Node modules and other large trees are not traversed because the glob matches specific filenames only.
 
 ---
 
 ## Change Classification
 
-### Classification Algorithm
+### `classifyChange(filePath, eventType)` → `ClassifiedChange`
 
-```ts
-function classifyChange(filePath, eventType) {
-  // eventType: 'add' | 'change' | 'unlink' | 'addDir' | 'unlinkDir'
-  
-  // 1. Check if it's a dependency file
-  if (isDependencyFile(filePath)) {
-    return {
-      type: 'DEPENDENCY_CHANGE',
-      priority: 'HIGH',
-      triggers: ['copilot-instructions', 'agents', 'skills']
-    };
-  }
-  
-  // 2. Check if it's a config file
-  if (isConfigFile(filePath)) {
-    return {
-      type: 'CONFIG_CHANGE',
-      priority: 'MEDIUM',
-      triggers: ['path-instructions', 'workflows']
-    };
-  }
-  
-  // 3. Check if it's a source structure change (inferred from file path)
-  if (isNewDirectoryInferred(filePath, projectModel)) {
-    return {
-      type: 'STRUCTURE_CHANGE',
-      priority: 'MEDIUM',
-      triggers: ['path-instructions']
-    };
-  }
-  
-  // 4. Check if it's a new source file
-  if (isSourceFile(filePath) && eventType === 'add') {
-    return {
-      type: 'SOURCE_ADDITION',
-      priority: 'LOW',
-      triggers: [] // No generators triggered
-    };
-  }
-  
-  // 5. Check if it's a user edit to generated file
-  if (isGeneratedFile(filePath) && eventType === 'change') {
-    return {
-      type: 'USER_EDIT',
-      priority: 'MEDIUM',
-      triggers: ['edit-tracker']
-    };
-  }
-  
-  // 6. Unknown
-  return {
-    type: 'OTHER',
-    priority: 'LOW',
-    triggers: []
-  };
-}
+Classification runs in strict priority order. First match wins.
+
+| Priority | Classified as | Condition |
+|---|---|---|
+| 1 | `DEPENDENCY_CHANGE` | Basename is in `DEPENDENCY_FILES` set |
+| 2 | `CONFIG_CHANGE` | Basename matches a `CONFIG_PATTERNS` regex |
+| 3 | `USER_EDIT` | Path contains `.github/copilot-`, `.github/agents/`, or `.github/skills/` |
+| 4 | `SOURCE_ADDITION` | `eventType === 'create'` and extension is `.ts`, `.js`, `.tsx`, `.jsx`, `.py`, `.go`, or `.rs` |
+| 5 | `OTHER` | Everything else |
+
+### DEPENDENCY_FILES (exact basename match)
+
+All node ecosystems:
+```
+package.json   package-lock.json   yarn.lock   pnpm-lock.yaml   bun.lockb
+```
+Go: `go.mod`, `go.sum`
+Rust: `Cargo.toml`, `Cargo.lock`
+Python: `requirements.txt`, `Pipfile`, `Pipfile.lock`, `poetry.lock`, `pyproject.toml`
+PHP: `composer.json`, `composer.lock`
+Ruby: `Gemfile`, `Gemfile.lock`
+
+> `bun.lockb` was added to align with the package manager detector in `dependency-scanner.ts`, which checks for `bun.lockb` to select the `bun` package manager.
+
+### CONFIG_PATTERNS (regex on basename)
+
+```
+/^tsconfig(\..+)?\.json$/    tsconfig.json, tsconfig.app.json, etc.
+/^jest\.config\..+$/
+/^vitest\.config\..+$/
+/^eslint\.config\..+$/
+/^webpack\.config\..+$/
+/^vite\.config\..+$/
+/^\.babelrc/
+/^\.eslintrc/
+/^\.prettierrc/
+/^rollup\.config\..+$/
 ```
 
-### Change Types
+### Priority mapping
 
-| Type | Triggers | Example | Priority |
-| --- | --- | --- | --- |
-| `DEPENDENCY_CHANGE` | Copilot Instructions, Agents | package.json updated | HIGH |
-| `CONFIG_CHANGE` | Path Instructions, Workflows | tsconfig.json changed | MEDIUM |
-| `STRUCTURE_CHANGE` | Path Instructions | src/components/ added | MEDIUM |
-| `SOURCE_ADDITION` | (none) | src/index.ts created | LOW |
-| `USER_EDIT` | Edit Tracker | .github/copilot-*.md modified | MEDIUM |
-| `OTHER` | (none) | Random file in project | LOW |
+| `classifiedAs` | `priority` | Triggers re-analysis? |
+|---|---|---|
+| `DEPENDENCY_CHANGE` | `HIGH` | ✅ Yes |
+| `CONFIG_CHANGE` | `MEDIUM` | ✅ Yes |
+| `USER_EDIT` | `MEDIUM` | ✅ Yes (via HIGH/MEDIUM filter) |
+| `SOURCE_ADDITION` | `LOW` | ❌ No |
+| `OTHER` | `LOW` | ❌ No |
 
 ---
 
-## Debouncing & Batching
+## Ignored Paths
 
-### Why Debounce?
-
-File system events often come in bursts (e.g., git checkout, npm install). Without debouncing:
-
-- 100+ events in 1 second
-- Each triggers project model update
-- Each triggers generators
-- Performance nightmare
-
-### Debounce Strategy
+`isIgnoredPath()` normalizes backslashes then rejects any path that contains or starts with one of these prefixes:
 
 ```
-function setupDebouncing() {
-  const pendingEvents = [];
-  const debounceTimer = 500ms; // Configurable: roadie.fileWatcherTimeout
-  
-  return function onFileChange(filePath, eventType) {
-    // Add to pending
-    pendingEvents.push({filePath, eventType, timestamp: now});
-    
-    // Reset timer
-    clearTimeout(debounceTimer);
-    debounceTimer = setTimeout(() => {
-      // All events collected, process them
-      processCollectedEvents(pendingEvents);
-      pendingEvents.clear();
-    }, 500ms);
-  };
-}
-
-function processCollectedEvents(events) {
-  // 1. Deduplicate
-  const unique = deduplicateEvents(events);
-  // If same file changed 3x quickly, only process once
-  
-  // 2. Classify each
-  const classified = unique.map(e => classifyChange(e.filePath, e.eventType));
-  
-  // 3. Batch by type
-  const byType = groupBy(classified, 'type');
-  
-  // 4. Dispatch
-  for (const [changeType, events] of byType) {
-    dispatcher.dispatch(changeType, events);
-  }
-}
+node_modules/    .git/    dist/    build/    out/
+.next/           .cache/  .vscode/ .idea/
+vendor/          venv/    .venv/
 ```
 
-### Event Deduplication
-
-```
-function deduplicateEvents(events) {
-  const seen = new Map<string, Event>();
-  
-  // Process in order, keep LAST occurrence of each file
-  for (const event of events) {
-    seen.set(event.filePath, event);
-  }
-  
-  // If last event was 'unlink', and earlier was 'add' for same file,
-  // remove both (file was created and deleted within debounce window)
-  const toRemove = new Set();
-  for (const [path, event] of seen) {
-    if (event.eventType === 'unlink') {
-      // Check if 'add' exists for same file
-      const earlierAdd = events.find(e => e.filePath === path && e.eventType === 'add');
-      if (earlierAdd) {
-        toRemove.add(path);
-      }
-    }
-  }
-  
-  // Remove cancelled-out events
-  for (const path of toRemove) {
-    seen.delete(path);
-  }
-  
-  return Array.from(seen.values());
-}
-```
+Events for ignored paths are dropped immediately inside `handleFileEvent()` — they never enter the pending map or the debounce timer.
 
 ---
 
-## Dispatcher Logic
+## Debouncing and Deduplication
 
-### Dispatch to Project Model Updater
+`FileWatcherManager` uses a `Map<string, PendingEvent>` (keyed by file path) with a rolling 500 ms debounce timer.
 
-```
-function dispatch(changeType, events) {
-  // Route to appropriate handler
-  
-  switch (changeType) {
-    case 'DEPENDENCY_CHANGE':
-      projectModelUpdater.updateDependencies(events);
-      break;
-    
-    case 'CONFIG_CHANGE':
-      projectModelUpdater.updateConfiguration(events);
-      break;
-    
-    case 'STRUCTURE_CHANGE':
-      projectModelUpdater.updateSourceStructure(events);
-      break;
-    
-    case 'USER_EDIT':
-      for (const event of events) { editTracker.trackEdit(event.filePath); }
-      break;
-    
-    case 'SOURCE_ADDITION':
-      // No action needed (just for logging)
-      logger.debug(`Source file added: ${events.map(e => e.filePath).join(', ')}`);
-      break;
-    
-    case 'OTHER':
-      // Ignore
-      break;
-  }
-}
-```
+**Deduplication:** When the same file fires multiple events within the debounce window, only the last one is kept.
+
+**Add+delete cancellation:** If a `create` event is pending for a path and a `delete` arrives (or vice-versa), both are removed. The net effect of creating then deleting within 500 ms is nothing — no re-analysis is triggered.
+
+**Batch overflow:** If more than 1000 events accumulate before the debounce fires (e.g., a large `git checkout`), a `FullRescanEvent` sentinel is emitted instead of individual events. The batch handler in `extension.ts` treats this the same as a HIGH-priority change — it calls `runRescan()`.
+
+**Sort order:** When the batch is dispatched to handlers, events are sorted HIGH → MEDIUM → LOW. This is informational (the handler checks priority regardless), but it keeps log output predictable.
 
 ---
 
-## Error Handling
+## Lifecycle and Disposal
 
-### Scenario 1: Permission Denied
+```typescript
+// extension.ts — activation
+const fileWatcher = new FileWatcherManager();
+container.register(fileWatcher);          // disposed on deactivation
 
-```
-watcher.on('error', (error) => {
-  if (error.code === 'EACCES') { // Permission denied
-    logger.warn(`Permission denied watching ${error.path}`);
-    
-    // Skip this path, continue watching others
-    // Don't crash the whole watcher
-    skipPath(error.path);
-  } else {
-    // Other error
-    logger.error(`Watcher error: ${error.message}`);
-    
-    // Try to recover
-    attemptRecovery();
-  }
-});
+const fsWatcher = vscode.workspace.createFileSystemWatcher(pattern);
+container.register(fsWatcher);            // disposed on deactivation
+
+const batchSub = fileWatcher.onBatch(handler);
+container.register(batchSub);            // unsubscribes handler on deactivation
+
+fileWatcher.start();                      // begins accepting events
 ```
 
-### Scenario 2: Watcher Crashes / Becomes Unresponsive
-
-```
-function setupWatcherHealthCheck() {
-  const lastEventTime = now();
-  const healthCheckInterval = 30 seconds; // configurable
-  
-  const timer = setInterval(() => {
-    if (now() - lastEventTime > 2 * healthCheckInterval) {
-      // No events in 2x interval
-      // Watcher is likely dead
-      logger.warn("File watcher appears unresponsive, restarting...");
-      
-      restartWatcher(); // Close old, start new
-      
-      // Trigger full rescan (force project model rebuild)
-      projectModelUpdater.rescanEverything();
-    }
-  }, healthCheckInterval);
-  
-  watcher.on('all', () => {
-    lastEventTime = now();
-  });
-}
-```
-
-### Scenario 3: Large Batch of Changes (e.g., git checkout)
-
-```
-function processCollectedEvents(events) {
-  // If more than 1000 events in one batch
-  if (events.length > 1000) {
-    logger.info(`Large batch detected (${events.length} events), triggering full rescan`);
-    
-    // Don't try to process individually
-    // Just trigger a full rebuild
-    projectModelUpdater.rescanEverything();
-    return;
-  }
-  
-  // Normal processing...
-}
-```
-
-### Scenario 4: Out of Memory / Watcher Limits
-
-```
-if (watchedPathCount > config.maxWatchedPaths) {
-  logger.warn(`Exceeded max watched paths (${watchedPathCount}), switching to polling`);
-  
-  // Close native watchers
-  watcher.close();
-  
-  // Switch to polling strategy
-  startPollingWatcher();
-}
-```
+On `deactivate()`, `container.dispose()` calls `dispose()` on all registered objects in registration order. `FileWatcherManager.dispose()` calls `stop()` → `flush()` (processes any pending events synchronously) → clears handlers and pending map.
 
 ---
 
-## Polling Fallback
+## Log Output
 
-For large workspaces or when native watchers fail:
+All log lines from the watcher use the standard Roadie Output channel (View → Output → Roadie).
 
-```ts
-function startPollingWatcher() {
-  const pollInterval = 5000ms; // 5 seconds, configurable
-  const lastState = new Map<string, {mtime, size}>();
-  
-  // IMPORTANT: Only poll WATCHED directories (dependency files, config files)
-  // Do NOT poll the entire workspace. Source directories use a longer interval.
-  const watchedPatterns = getDependencyAndConfigGlobs(); // package.json, tsconfig, etc.
-  const sourcePatterns = getSourceDirectoryGlobs();       // src/, components/, etc.
-  const sourcePollInterval = 30000; // 30 seconds for source structure
-  
-  // Poll dependency/config files frequently
-  setInterval(() => {
-    const currentState = scanMatchingFiles(watchedPatterns);
-    processChanges(lastState, currentState);
-  }, pollInterval);
-  
-  // Poll source structure less frequently (new directories only)
-  setInterval(() => {
-    const currentDirs = scanDirectories(sourcePatterns);
-    processStructureChanges(lastDirState, currentDirs);
-  }, sourcePollInterval);
-    
-    // Compute diff
-    const changes = [];
-    for (const [path, stat] of currentState) {
-      if (!lastState.has(path)) {
-        changes.push({path, eventType: 'add', stat});
-      } else {
-        const oldStat = lastState.get(path);
-        if (oldStat.mtime !== stat.mtime || oldStat.size !== stat.size) {
-          changes.push({path, eventType: 'change', stat});
-        }
-      }
-    }
-    
-    // Check for deletions
-    for (const [path, stat] of lastState) {
-      if (!currentState.has(path)) {
-        changes.push({path, eventType: 'unlink'});
-      }
-    }
-    
-    if (changes.length > 0) {
-      // Process like normal watcher events
-      onBatchChanges(changes);
-    }
-    
-    lastState = currentState;
-  }, pollInterval);
-}
-```
-
-**Performance note:** Polling is slower but reliable. Use native watchers when possible.
+| Condition | Level | Message |
+|---|---|---|
+| Watcher started | DEBUG | `File watcher active — watching dependency and config files` |
+| Dependency/config file changed | INFO | `File watcher: package-lock.json changed — re-analysing…` |
+| Batch overflow | INFO | `File watcher: batch overflow — running full rescan…` |
+| Re-analysis complete | INFO | `File watcher: re-analysis complete — N commands` |
+| `.github/` files updated | INFO | `File watcher: .github/ updated — .github/copilot-instructions.md` |
+| `.github/` files unchanged | DEBUG | `File watcher: .github/ files unchanged` |
+| Re-analysis error | ERROR | `File watcher: re-analysis failed` + error detail |
 
 ---
 
-## Event Types & Handling
+## What Triggers a Re-analysis (Complete Reference)
 
-### VS Code FileSystemWatcher Events
-
-> **Important:** VS Code FileSystemWatcher provides `onDidCreate`, `onDidChange`, and `onDidDelete` events for files only. It does NOT provide directory-specific events (`addDir`/`unlinkDir`). Directory changes are inferred from file creation/deletion paths. Use `vscode.workspace.createFileSystemWatcher(globPattern)` to create watchers.
-> 
-
-```tsx
-const watcher = vscode.workspace.createFileSystemWatcher('**/package.json');
-
-watcher.onDidCreate((uri) => {
-  emit('file-change', {filePath: uri.fsPath, eventType: 'create'});
-});
-
-watcher.onDidChange((uri) => {
-  emit('file-change', {filePath: uri.fsPath, eventType: 'change'});
-});
-
-watcher.onDidDelete((uri) => {
-  emit('file-change', {filePath: uri.fsPath, eventType: 'delete'});
-});
-
-// Register multiple watchers for different patterns
-const watchers = [
-  vscode.workspace.createFileSystemWatcher('**/package.json'),
-  vscode.workspace.createFileSystemWatcher('**/tsconfig.json'),
-  vscode.workspace.createFileSystemWatcher('**/.eslintrc*'),
-  vscode.workspace.createFileSystemWatcher('**/vitest.config*'),
-  vscode.workspace.createFileSystemWatcher('.github/**/*.md'),
-];
-
-// Dispose all on deactivation
-context.subscriptions.push(...watchers);
-```
-
-> **Note on directory events:** When a file is created in a new directory (e.g., `src/components/Button.tsx`), infer `STRUCTURE_CHANGE` from the path if the parent directory didn't previously exist in the project model. When all files in a directory are deleted, infer directory removal from the project model's directory tree.
-> 
+| Trigger | Automatic? | How |
+|---|---|---|
+| Lock file created/changed/deleted | ✅ Yes | File watcher → DEPENDENCY_CHANGE |
+| `package.json` changed | ✅ Yes | File watcher → DEPENDENCY_CHANGE |
+| `tsconfig.json` / build config changed | ✅ Yes | File watcher → CONFIG_CHANGE |
+| > 1000 file changes at once (e.g. git checkout) | ✅ Yes | FullRescanEvent sentinel |
+| Extension startup | ✅ Yes | Startup analysis in `activate()` |
+| `Roadie: Initialize` command | Manual | Runs full analysis + file generation |
+| `Roadie: Rescan Project` command | Manual | Runs full analysis only (no file generation) |
 
 ---
 
-## Interface & Public API
+## Package Manager Detection (How Auto-Fix Works)
 
-```tsx
-interface FileWatcherManager {
-  // Activation/deactivation
-  start(config: FileWatcherConfig): Promise<void>;
-  stop(): Promise<void>;
-  
-  // Event subscription
-  on(event: 'file-change', handler: (change: FileChange) => void): void;
-  on(event: 'error', handler: (error: Error) => void): void;
-  
-  // Commands
-  rescan(): Promise<void>; // Force full rescan
-  ignorePattern(pattern: string): void; // Dynamically ignore
-  
-  // Status
-  isWatching(): boolean;
-  getWatchedPathCount(): number;
-  getStatus(): WatcherStatus;
+`dependency-scanner.ts` detects the package manager by checking for lock files in this order:
+
+```typescript
+if (await exists(path.join(root, 'pnpm-lock.yaml'))) return 'pnpm';
+if (await exists(path.join(root, 'yarn.lock')))       return 'yarn';
+if (await exists(path.join(root, 'bun.lockb')))       return 'bun';
+return 'npm'; // fallback
+```
+
+The detected package manager is baked into every command string stored in `project_commands` (e.g. `pnpm run build`, `npm run test`).
+
+**Auto-correction scenario:**
+
+1. Project was initialized with npm (`package-lock.json` present) → Roadie stored `npm run …` commands
+2. Developer runs `pnpm import` — `pnpm-lock.yaml` appears in the workspace root
+3. File watcher detects `pnpm-lock.yaml` creation → `DEPENDENCY_CHANGE` (HIGH)
+4. Batch fires after 500 ms debounce → `runRescan()` called
+5. `ProjectAnalyzer.analyze()` re-runs → `detectPackageManager()` returns `'pnpm'`
+6. `saveCommands()` deletes all rows and re-inserts with `pnpm run …`
+7. `FileGenerator.generateAll()` detects content change → rewrites `.github/copilot-instructions.md`
+
+The correction is fully automatic. No manual rescan needed.
+
+---
+
+## FileWatcherManager Public API
+
+```typescript
+class FileWatcherManager {
+  constructor(config?: Partial<FileWatcherConfig>)
+
+  // Feed a raw VS Code FileSystemWatcher event into the manager.
+  handleFileEvent(filePath: string, eventType: 'create' | 'change' | 'delete'): void
+
+  // Subscribe to debounced, classified batches. Returns a Disposable.
+  onBatch(handler: BatchHandler): Disposable
+
+  // Force-flush pending events (bypasses debounce timer).
+  flush(): void
+
+  start(): void   // Begin accepting events
+  stop(): void    // Stop + flush
+  dispose(): void // stop + clear all handlers and pending
+
+  isWatching(): boolean
+  getStatus(): { watching: boolean; pendingCount: number; totalEvents: number }
 }
-
-interface FileChange {
-  filePath: string;
-  eventType: 'add' | 'change' | 'unlink' | 'addDir' | 'unlinkDir';
-  timestamp: Date;
-  classifiedAs: ChangeType;
-}
-
-type ChangeType = 
-  | 'DEPENDENCY_CHANGE'
-  | 'CONFIG_CHANGE'
-  | 'STRUCTURE_CHANGE'
-  | 'SOURCE_ADDITION'
-  | 'USER_EDIT'
-  | 'OTHER';
 
 interface FileWatcherConfig {
-  workspace: string; // VS Code workspace path
-  debounceMs: number; // default: 500
-  maxWatchedPaths: number; // default: 5000
-  usePolling: boolean; // default: false
-  pollIntervalMs: number; // default: 5000
+  debounceMs: number;    // default: 500
+  maxBatchSize: number;  // default: 1000
 }
 
-interface WatcherStatus {
-  watching: boolean;
-  mode: 'native' | 'polling';
-  watchedPaths: number;
-  totalEventsSinceStart: number;
-  lastEventTime: Date | null;
-  errors: Error[];
+type BatchPayload = FileChangeEvent[] | [FullRescanEvent];
+
+interface FileChangeEvent {
+  filePath: string;
+  eventType: 'create' | 'change' | 'delete';
+  classifiedAs: ChangeType;   // 'DEPENDENCY_CHANGE' | 'CONFIG_CHANGE' | 'USER_EDIT' | 'SOURCE_ADDITION' | 'OTHER'
+  priority: 'HIGH' | 'MEDIUM' | 'LOW';
+  triggers: string[];
+  timestamp: Date;
+}
+
+interface FullRescanEvent {
+  type: 'FULL_RESCAN';
+  eventCount: number;
+  timestamp: Date;
 }
 ```
-
----
-
-## Testing Strategy
-
-### Unit Tests
-
-```tsx
-// test/watcher/classification.test.ts
-describe('Change Classification', () => {
-  it('classifies package.json change as DEPENDENCY_CHANGE', () => {
-    const change = classifyChange('package.json', 'change');
-    expect(change.type).toBe('DEPENDENCY_CHANGE');
-    expect(change.priority).toBe('HIGH');
-  });
-  
-  it('classifies src/components/ addition as STRUCTURE_CHANGE', () => {
-    const change = classifyChange('src/components', 'addDir');
-    expect(change.type).toBe('STRUCTURE_CHANGE');
-  });
-  
-  it('classifies .github/copilot.md change as USER_EDIT', () => {
-    const change = classifyChange('.github/copilot-instructions.md', 'change');
-    expect(change.type).toBe('USER_EDIT');
-  });
-  // ... 20+ more classification tests
-});
-
-// test/watcher/debounce.test.ts
-describe('Debouncing', () => {
-  it('batches rapid changes to same file', async () => {
-    const received: FileChange[] = [];
-    const watcher = new MockWatcher();
-    
-    watcher.on('batch', (changes) => {
-      received.push(...changes);
-    });
-    
-    // Emit 3 rapid changes to same file
-    watcher.emit('change', 'package.json');
-    watcher.emit('change', 'package.json');
-    watcher.emit('change', 'package.json');
-    
-    // Wait for debounce
-    await wait(600);
-    
-    // Should receive 1 (deduplicated)
-    expect(received.length).toBe(1);
-  });
-  
-  it('batches many files within debounce window', async () => {
-    const batches: FileChange[][] = [];
-    const watcher = new MockWatcher();
-    
-    watcher.on('batch', (changes) => {
-      batches.push(changes);
-    });
-    
-    // Emit 100 changes within 500ms
-    for (let i = 0; i < 100; i++) {
-      watcher.emit('change', `src/file${i}.ts`);
-    }
-    
-    await wait(600);
-    
-    // Should receive 1 batch (not 100)
-    expect(batches.length).toBe(1);
-    expect(batches[0].length).toBe(100);
-  });
-  // ... more debounce tests
-});
-
-// test/watcher/error-handling.test.ts
-describe('Error Handling', () => {
-  it('recovers from permission denied errors', async () => {
-    const watcher = new MockWatcher();
-    const errors: Error[] = [];
-    
-    watcher.on('error', (err) => {
-      errors.push(err);
-    });
-    
-    // Simulate permission error
-    watcher.emit('error', new Error('EACCES'));
-    
-    // Watcher should still be running
-    expect(watcher.isWatching()).toBe(true);
-  });
-  
-  it('restarts watcher if unresponsive', async () => {
-    const watcher = new MockWatcher();
-    let restartCount = 0;
-    
-    watcher.on('restart', () => {
-      restartCount++;
-    });
-    
-    // Simulate 2 minute silence
-    watcher.simulateNoEventsFor(120000);
-    
-    // Should trigger restart
-    expect(restartCount).toBeGreaterThan(0);
-  });
-});
-```
-
-### Integration Tests
-
-```tsx
-// test/integration/file-watcher.integration.test.ts
-describe('File Watcher Integration', () => {
-  let tempDir: string;
-  let watcher: FileWatcherManager;
-  
-  beforeEach(() => {
-    tempDir = fs.mkdtempSync();
-    watcher = new FileWatcherManager();
-  });
-  
-  afterEach(() => {
-    watcher.stop();
-    fs.rmSync(tempDir, {recursive: true});
-  });
-  
-  it('detects dependency file changes', async () => {
-    const changes: FileChange[] = [];
-    watcher.on('file-change', (change) => {
-      changes.push(change);
-    });
-    
-    await watcher.start({workspace: tempDir});
-    
-    // Modify package.json
-    const packagePath = path.join(tempDir, 'package.json');
-    fs.writeFileSync(packagePath, '{"name": "test"}')
-    
-    // Create it first
-    fs.writeFileSync(packagePath, '{"name": "old"}');
-    
-    // Now change it
-    await wait(100);
-    fs.writeFileSync(packagePath, '{"name": "new"}');
-    
-    // Wait for debounce
-    await wait(600);
-    
-    // Should detect as DEPENDENCY_CHANGE
-    expect(changes.some(c => c.classifiedAs === 'DEPENDENCY_CHANGE')).toBe(true);
-  });
-  
-  it('ignores node_modules changes', async () => {
-    const changes: FileChange[] = [];
-    watcher.on('file-change', (change) => {
-      changes.push(change);
-    });
-    
-    await watcher.start({workspace: tempDir});
-    
-    // Create node_modules directory and file
-    const nmPath = path.join(tempDir, 'node_modules', 'package', 'index.js');
-    fs.mkdirSync(path.dirname(nmPath), {recursive: true});
-    fs.writeFileSync(nmPath, 'module.exports = {}');
-    
-    await wait(600);
-    
-    // Should NOT detect
-    expect(changes.length).toBe(0);
-  });
-});
-```
-
----
-
-## Performance Budgets
-
-| Operation | Budget | Notes |
-| --- | --- | --- |
-| Classify change | < 5ms | Per event |
-| Debounce + batch | < 500ms | Configurable |
-| Process batch | < 500ms | 1000 events |
-| Dispatch to updater | < 10ms | Async |
-| Total event latency | < 1.5s | Event → classify (5ms) + debounce (500ms) + process (200ms) + dispatch (10ms) = ~715ms typical |
-
----
-
-## Configuration Options
-
-```tsx
-// In package.json contributes.configuration
-{
-  "roadie.fileWatcherTimeout": {
-    "type": "number",
-    "default": 500,
-    "description": "Debounce time for file watcher events (ms)"
-  },
-  "roadie.maxWatchedPaths": {
-    "type": "number",
-    "default": 5000,
-    "description": "Maximum paths to watch before switching to polling"
-  },
-  "roadie.fileWatcherUsePolling": {
-    "type": "boolean",
-    "default": false,
-    "description": "Force polling mode (slower, more compatible)"
-  }
-}
-```
-
----
-
-## Build Prompt for AI Agent
-
-```ts
-Build the File Watcher Manager module (M15) according to this spec.
-
-Key requirements:
-1. Watch files using VS Code FileSystemWatcher with 500ms custom debounce
-2. Classify changes (DEPENDENCY, CONFIG, STRUCTURE, etc.)
-3. Infer directory changes from file creation/deletion paths (VS Code watcher has no addDir/unlinkDir events)
-4. Gracefully handle errors (permission denied, watcher crash)
-5. Fallback to polling if native watchers fail
-6. Emit events to dispatcher
-7. On startup, reconcile watched files against project model timestamps
-8. Include 30+ unit tests
-9. Include 5+ integration tests
-
-Files to create:
-- src/watcher/file-watcher-manager.ts (main module, ~250 lines)
-- src/watcher/change-classifier.ts (classification logic, ~100 lines)
-- src/watcher/event-dispatcher.ts (routing, ~80 lines)
-- test/watcher/*.test.ts (30+ tests)
-
-Verification criteria:
-- npm run test passes
-- npm run lint passes
-- All classification tests pass
-- Integration test with real file system passes
-```
-
----
-
-**Next Module:** M22 - Section Manager (detects section ownership, computes hashes, merges human edits)
-
-**Critical Dependency:** This module must work before building generators (M25+)

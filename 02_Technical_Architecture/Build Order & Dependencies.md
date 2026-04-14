@@ -28,6 +28,7 @@
 | 18 | `src/generator/templates/mcp-config.ts` | `.mcp.json` generator | file-generator | S | M23 |
 | 19 | `src/generator/templates/agent-definitions.ts` | Update: MCP integration section in [AGENTS.md](http://AGENTS.md) | existing template | S | M23 |
 | 20 | Integration testing + `tsup.config.ts` update | End-to-end verification | all | M | M23 |
+| **21** | `src/generator/templates/claude-hooks.ts` | Claude Code Hooks generator — `.claude/settings.json` with SessionStart/PostToolUse/Stop hooks; new `prime`, `observe`, `reconcile` CLI subcommands; update `generate_all_files` to call hooks generator | Steps 16, 18 | S | M23 |
 
 ---
 
@@ -76,6 +77,12 @@ All three must exit 0. If any fail, do not proceed to Step 10.
 > Create `src/mcp/tools/workflow-tools.ts` with two handler functions: `handleRunWorkflow` and `handleGetWorkflowStatus`. `handleRunWorkflow` validates input with Zod, creates a `WorkflowContext` with `StderrProgressReporter` and `NullCancellationHandle`, calls `workflowEngine.execute()`, and returns the result as JSON. If ModelProvider is NullModelProvider, return an error with code `LLM_UNAVAILABLE`. The feature workflow's `autoApprove` option defaults to `true` in standalone mode. `handleGetWorkflowStatus` looks up active workflows by execution ID.
 > 
 
+### Step 21: claude-hooks.ts (Claude Code Hooks Generator)
+
+> Create `src/generator/templates/claude-hooks.ts`. Export `generateClaudeHooks(model: ProjectModel): string` that returns the JSON content for `.claude/settings.json` containing all three lifecycle hooks: `SessionStart` (runs `npx roadie-mcp prime --project .`), `PostToolUse` with matcher `Edit|Write|MultiEdit` (runs `npx roadie-mcp observe --tool $TOOL --file $FILE`), and `Stop` (runs `npx roadie-mcp reconcile --project .`). Add a `mergeOrCreateClaudeHooks(existingPath, roadieHooks, fs)` helper that reads existing JSON, performs append-only merge of the hooks arrays (never overwrites existing entries, deduplicates by command string), and returns the merged JSON string. On invalid JSON, throw with a clear message. Register `'claude-hooks'` as a file type in `file-generator.ts` with output path `.claude/settings.json`. Update `generate_all_files` to include this type in its generation pass.
+>
+> Add three CLI subcommands to `bin/roadie-mcp.ts`: `prime --project <path>` (loads ProjectModel into memory, warms caches, exits 0), `observe --tool <name> --file <path>` (writes edit event directly to SQLite `learning_events` table using `NodeFileSystemProvider`, exits 0), `reconcile --project <path>` (calls `LearningEngine.reconcile()`, commits WAL, exits 0). All three subcommands must write only to stderr, never stdout, and must always exit with code 0 — hook failures must not interrupt Claude Code sessions.
+
 ---
 
 ## Milestone Boundaries
@@ -103,20 +110,23 @@ All three must exit 0. If any fail, do not proceed to Step 10.
 3. All tools respond within 2s on typical Node.js project
 4. Tools work identically in extension-spawned and standalone modes
 
-### M23: Workflow + Generator Tools (Steps 16–20)
+### M23: Workflow + Generator Tools (Steps 16–21)
 
-**Deliverables:** 4 mutating tools (`generate_file`, `generate_all_files`, `run_workflow`, `get_workflow_status`), `.mcp.json` generator, [AGENTS.md](http://AGENTS.md) MCP section, integration tests.
+**Deliverables:** 4 mutating tools (`generate_file`, `generate_all_files`, `run_workflow`, `get_workflow_status`), `.mcp.json` generator, [AGENTS.md](http://AGENTS.md) MCP section, Claude Code Hooks generator (`claude-hooks.ts`), `prime`/`observe`/`reconcile` CLI subcommands, integration tests.
 
 **Validation:**
 
 1. `generate_file` creates files with section ownership markers
-2. `generate_all_files` generates all file types
+2. `generate_all_files` generates all file types (including `.claude/settings.json`)
 3. `run_workflow` returns error when no LLM available
 4. `run_workflow` executes workflow with mock LLM in tests
 5. `.mcp.json` is generated with correct server config
 6. `.mcp.json` merges with existing entries
 7. Claude Code can discover and connect via generated config
 8. End-to-end: standalone server → tool call → result
+9. `.claude/settings.json` generated with all 3 hooks (SessionStart, PostToolUse, Stop)
+10. `.claude/settings.json` append-only merge: existing non-Roadie hook entries are preserved
+11. `prime`/`observe`/`reconcile` subcommands exit 0 and produce no stdout output
 
 ---
 
@@ -132,4 +142,5 @@ All three must exit 0. If any fail, do not proceed to Step 10.
 | 16–17 | Mutating MCP tools | 2–3 |
 | 18–19 | Cross-tool config generators | 1–2 |
 | 20 | Integration testing + build config | 2–3 |
-| **Total** |  | **15–20** |
+| 21 | Claude Code Hooks generator + CLI subcommands | 1–2 |
+| **Total** |  | **16–22** |

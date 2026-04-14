@@ -74,7 +74,167 @@ I've generated 8 configuration files:
 ...
 ```
 
-## 2. Gemini CLI Integration
+## 2. Claude Code Hooks Integration (Autonomous Mode)
+
+The `.mcp.json` approach (Section 1) exposes Roadie's tools passively — Claude Code discovers the server and a developer can call tools manually. Hooks take this further: Roadie generates a `.claude/settings.json` that registers **lifecycle hooks**, so Claude Code fires Roadie automatically at key moments without any LLM instruction.
+
+**Philosophy:** install Roadie once → everything else is invisible.
+
+### The Three Hooks
+
+| Hook Event | CLI Subcommand | When It Fires | What It Does |
+| --- | --- | --- | --- |
+| `SessionStart` | `roadie-mcp prime --project .` | Before the first user turn | Warms SQLite-backed context so the first tool call is fast |
+| `PostToolUse` (Edit\|Write\|MultiEdit) | `roadie-mcp observe --tool $TOOL --file $FILE` | After every file-editing tool | Tracks edits directly to SQLite without going through MCP protocol |
+| `Stop` | `roadie-mcp reconcile --project .` | After the session ends | Runs end-of-session learning reconciliation against the project model |
+
+All three subcommands are **fire-and-forget**: no stdout, always exit code 0. Hook failures must never interrupt a Claude Code session.
+
+### Generated `.claude/settings.json`
+
+Roadie generates this file as part of `generate_all_files`. If `.claude/settings.json` already exists, Roadie merges the `hooks` section without touching any other keys.
+
+```json
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "npx roadie-mcp prime --project ."
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "npx roadie-mcp observe --tool $TOOL --file $FILE"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "npx roadie-mcp reconcile --project ."
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+Claude Code injects `$TOOL`, `$FILE`, and `$TRANSCRIPT_PATH` environment variables when it fires hook commands. The `observe` subcommand reads `$TOOL` and `$FILE` to record which tool modified which file.
+
+### Merge Strategy
+
+`.claude/settings.json` is pure JSON with no section ownership markers. The merge algorithm is:
+
+1. If file does not exist → create with the full hooks structure above
+2. If file exists and is valid JSON → read existing content, merge `hooks` section (append-only — never overwrite existing hook entries), write atomically
+3. If file exists and `hooks` key is absent → add `hooks` key with all three entries, preserve all other keys
+4. If file exists and some hooks are already present → **append** Roadie entries only to arrays that don't already contain a Roadie command; do not duplicate
+5. If file is invalid JSON → log warning to stderr, skip generation without error
+
+```tsx
+async function mergeOrCreateClaudeHooks(
+  existingPath: string,
+  roadieHooks: ClaudeHooksConfig,
+  fs: FileSystemProvider
+): Promise<string> {
+  let config: Record<string, unknown> = {};
+
+  if (await fs.fileExists(existingPath)) {
+    try {
+      const raw = await fs.readFile(existingPath);
+      config = JSON.parse(raw);
+    } catch {
+      throw new Error('Existing .claude/settings.json contains invalid JSON. Skipping.');
+    }
+  }
+
+  // Append-only merge — never clobber existing entries
+  if (!config.hooks || typeof config.hooks !== 'object') {
+    config.hooks = {};
+  }
+  const existing = config.hooks as Record<string, unknown[]>;
+
+  for (const [event, entries] of Object.entries(roadieHooks)) {
+    if (!existing[event]) {
+      existing[event] = entries;
+    } else {
+      // Only append entries whose command is not already present
+      const commands = (existing[event] as Array<{ hooks?: Array<{ command?: string }> }>)
+        .flatMap(e => e.hooks ?? [])
+        .map(h => h.command);
+      for (const entry of entries) {
+        const newCmds = (entry as { hooks?: Array<{ command?: string }> }).hooks?.map(h => h.command) ?? [];
+        if (!newCmds.some(c => commands.includes(c))) {
+          existing[event].push(entry);
+        }
+      }
+    }
+  }
+
+  return JSON.stringify(config, null, 2);
+}
+```
+
+### New CLI Subcommands
+
+These three subcommands are added to `bin/roadie-mcp.ts` and handled without going through the MCP protocol layer:
+
+| Subcommand | Implementation | Notes |
+| --- | --- | --- |
+| `prime --project <path>` | Loads ProjectModel from SQLite into memory cache | Warms all lazy-loaded caches; writes nothing |
+| `observe --tool <name> --file <path>` | Writes edit event directly to `learning_events` table in SQLite | Bypasses MCP server; uses `NodeFileSystemProvider` directly |
+| `reconcile --project <path>` | Runs `LearningEngine.reconcile()` on end-of-session data | Updates project model snapshots; commits SQLite WAL |
+
+All subcommands write diagnostic output only to stderr. They always exit with code 0.
+
+### Developer Experience End-to-End
+
+```
+# One-time setup (VS Code extension or npm install)
+npm install -g roadie-mcp
+
+# In any Claude Code session
+$ claude
+
+# Invisible — Claude Code fires hooks automatically:
+# [SessionStart]  → npx roadie-mcp prime --project .
+# [PostToolUse]   → npx roadie-mcp observe --tool Write --file src/auth.ts
+# [PostToolUse]   → npx roadie-mcp observe --tool Edit  --file src/auth.ts
+# [Stop]          → npx roadie-mcp reconcile --project .
+#
+# Developer sees nothing. Roadie silently tracks everything.
+```
+
+### How This Differs from `.mcp.json`
+
+| Aspect | `.mcp.json` | `.claude/settings.json` hooks |
+| --- | --- | --- |
+| Purpose | Passive server registration | Active lifecycle callbacks |
+| Trigger | LLM decides to call a tool | Claude Code fires automatically |
+| Protocol | MCP JSON-RPC | Direct CLI subprocess |
+| Autonomy | Requires explicit LLM instruction | Fully deterministic |
+| Context preheat | On first tool call | Before first user turn |
+| Edit tracking | Only if LLM calls `observe_*` | After every Edit/Write/MultiEdit |
+| End-of-session | Never | Always, via Stop hook |
+
+Both files are generated together by `generate_all_files`. They complement each other — `.mcp.json` exposes the 10 on-demand tools; `.claude/settings.json` hooks provide the invisible autonomy layer.
+
+---
+
+## 3. Gemini CLI Integration
 
 Gemini CLI supports MCP servers via the same `.mcp.json` format or its own settings:
 
@@ -91,11 +251,11 @@ Gemini CLI supports MCP servers via the same `.mcp.json` format or its own setti
 
 The experience is identical to Claude Code — Gemini provides the model, Roadie provides the tools.
 
-## 3. Cursor / Windsurf / Other MCP Clients
+## 4. Cursor / Windsurf / Other MCP Clients
 
 Any MCP-compatible tool that supports stdio transport can connect using the same configuration. The MCP protocol is the standard interface.
 
-## 4. .mcp.json Generator
+## 5. .mcp.json Generator
 
 Roadie generates `.mcp.json` as part of its file generation catalog.
 
@@ -157,7 +317,7 @@ async function mergeOrCreateMCPConfig(
 }
 ```
 
-## 5. [AGENTS.md](http://AGENTS.md) Enhancement
+## 6. [AGENTS.md](http://AGENTS.md) Enhancement
 
 The existing `AGENTS.md` generator (Phase 1.5) is updated to include an MCP integration section.
 
@@ -212,7 +372,7 @@ Add to your `.mcp.json` or tool-specific config:
 
 This section uses standard Roadie ownership markers, so human edits are preserved via the append-below merge strategy.
 
-## 6. npm Package Configuration
+## 7. npm Package Configuration
 
 ### package.json additions
 

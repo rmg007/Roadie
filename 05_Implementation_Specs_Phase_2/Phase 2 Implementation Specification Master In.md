@@ -12,7 +12,7 @@
 
 **Estimated Build Time:** 15–20 hours
 
-**Milestones:** M21 (Scaffold), M22 (Project Tools), M23 (Workflow + File Gen Tools)
+**Milestones:** M21 (Scaffold), M22 (Project Tools), M23 (Workflow + File Gen Tools + Hooks Generator)
 
 ---
 
@@ -45,6 +45,7 @@
 - `.mcp.json` generator so Claude Code/Gemini CLI auto-discover Roadie
 - Enhanced `AGENTS.md` with MCP tool documentation
 - Zero-config: generated files include MCP server connection details
+- **Claude Code Hooks Generator** — generates `.claude/settings.json` with lifecycle hooks that call `roadie-mcp` automatically (invisible mode): `SessionStart` preheats context, `PostToolUse` tracks every file edit, `Stop` runs end-of-session reconciliation
 
 ### Integration with Phase 1/1.5
 
@@ -97,15 +98,16 @@
 3. Read the Architecture Overview page (big picture)
 4. Read "Implementation Patterns" from Phase 1 (still applies)
 
-**Build (Steps 1–20)**
+**Build (Steps 1–21)**
 
 1. Start with providers.ts (Step 1)
 2. Refactor existing modules to accept providers (Steps 2–8)
 3. **GATE: Run all Phase 1/1.5 tests — must pass before proceeding**
 4. Build MCP server scaffold (Steps 10–12)
 5. Build MCP tools (Steps 13–16)
-6. Build cross-tool config generators (Steps 17–18)
-7. Integration testing (Step 19)
+6. Build cross-tool config generators (Steps 17–19)
+7. Integration testing (Step 20)
+8. Build Claude Code Hooks generator + CLI subcommands (Step 21)
 
 **Critical Rule:** Step 9 is a hard gate. ALL existing Phase 1/1.5 tests must pass after provider refactoring. Do not write any MCP-specific code until this gate passes.
 
@@ -161,7 +163,8 @@ Phase 2 (MCP Server) — NEW
 │  └─ VSCode Providers (VS Code API wrappers)
 └─ Cross-Tool Config
    ├─ .mcp.json generator
-   └─ AGENTS.md MCP section
+   ├─ AGENTS.md MCP section
+   └─ Claude Code Hooks generator (.claude/settings.json)
 ```
 
 ---
@@ -206,7 +209,7 @@ Phase 2 (MCP Server) — NEW
 | --- | --- | --- | --- | --- | --- |
 | Phase 1 | 28 | — | 4,500 | 33.5 | Medium |
 | Phase 1.5 | ~30 | ~5 | ~4,000 | 25–30 | High |
-| **Phase 2** | **16** | **7** | **~2,300** | **15–20** | **Low–Medium** |
+| **Phase 2** | **17** | **8** | **~2,500** | **16–22** | **Low–Medium** |
 | **Total** | **~74** | **~12** | **~10,800** | **~73.5** | — |
 
 **Phase 2 Risk Drivers:**
@@ -259,7 +262,7 @@ Phase 2 (MCP Server) — NEW
 | What each MCP tool does | MCP Tool Definitions |
 | Running without VS Code | Standalone Mode Design |
 | Setting up Claude Code / Gemini | Cross-Tool Integration |
-| What to build first | Build Order & Dependencies |
+| What to build first (21 steps) | Build Order & Dependencies |
 | How to test | Testing Strategy |
 
 ---

@@ -26,7 +26,7 @@ The intent classifier recognizes 8 distinct intents. Each maps to a workflow or 
 - "The API returns 500 after the deploy"
 - "TypeError: Cannot read property 'id' of undefined"
 
-**Escalation:** Step 4 (verify tests) failure → retry step 3 with test output + Tier 1
+**Escalation:** Step 4 (verify tests) failure → retry step 3 with test output 
 
 ---
 
@@ -48,7 +48,7 @@ The intent classifier recognizes 8 distinct intents. Each maps to a workflow or 
 - "Build an export-to-PDF feature"
 - "Implement user search with filters"
 
-**Escalation:** If plan generation fails, remain at Tier 0 (plan is low-cost step)
+**Escalation:** If plan generation fails, remain at free tier (plan is low-cost step)
 
 ---
 
@@ -70,7 +70,7 @@ The intent classifier recognizes 8 distinct intents. Each maps to a workflow or 
 - "Extract the form validation logic into a separate module"
 - "Simplify the data transformation pipeline"
 
-**Escalation:** Step 2 (characterization tests) failure → Tier 1
+**Escalation:** Step 2 (characterization tests) failure → standard tier
 
 ---
 
@@ -92,7 +92,7 @@ The intent classifier recognizes 8 distinct intents. Each maps to a workflow or 
 - "Check this PR for security issues"
 - "Audit my code for performance problems"
 
-**Escalation:** Security review uses Tier 1; others Tier 0
+**Escalation:** Security review uses standard tier; others free tier
 
 ---
 
@@ -136,7 +136,7 @@ The intent classifier recognizes 8 distinct intents. Each maps to a workflow or 
 - "Run a security audit on our dependencies"
 - "Upgrade TypeScript and fix any type errors"
 
-**Escalation:** Breaking change detection → Tier 1
+**Escalation:** Breaking change detection → standard tier
 
 ---
 

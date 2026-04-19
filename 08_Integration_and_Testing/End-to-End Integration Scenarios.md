@@ -49,7 +49,7 @@ Workflow state: `PENDING` → `RUNNING`
 **Step 1: Locate Error Source**
 
 - Agent role: `diagnostician`
-- Model tier: Tier 0 (GPT-4.1)
+- Model tier: free (GPT-4.1)
 - Tools: file search, grep, git log
 - Prompt template:
     
@@ -81,7 +81,7 @@ Workflow state: `PENDING` → `RUNNING`
 **Step 2: Diagnose Root Cause**
 
 - Agent role: `diagnostician`
-- Model tier: **Tier 1** (Claude Sonnet) — More nuanced
+- Model tier: **standard** (Claude Sonnet) — More nuanced
 - Tools: code read, pattern search
 - Uses Step 1 output as context
 - Output:
@@ -103,7 +103,7 @@ Workflow state: `PENDING` → `RUNNING`
 **Step 3: Generate and Apply Fix**
 
 - Agent role: `fixer`
-- Model tier: Tier 0 (GPT-4.1)
+- Model tier: free (GPT-4.1)
 - Tools: code read, code edit, file write
 - Prompt includes Step 2 diagnosis
 - Output:
@@ -197,7 +197,7 @@ Workflow: Feature Development
 
 ### Step 3: Analyze Requirements
 
-Agent: `planner`, Tier 0  
+Agent: `planner`, free tier  
 
 Output: Structured requirements (UI, database flag, API endpoint, styling)
 
@@ -242,19 +242,19 @@ Re-present plan with system preference detection
 
 **Database Agent:**
 
-- Tier 0
+ - free tier
 - Generates Prisma schema change
 - Output: Migration file + schema update
 
 **Backend Agent:**
 
-- Tier 0 → Tier 1 (escalate if integration fails)
+- free → standard tier (escalate if integration fails)
 - Generates endpoints
 - Output: GET `/api/settings/theme`, POST `/api/settings/theme`
 
 **Frontend Agent:**
 
-- Tier 0
+ - free tier
 - Generates React component
 - Output: `SettingsThemeToggle.tsx` with system preference detection
 
@@ -295,7 +295,7 @@ Ready to merge.
 
 All 5 passes execute concurrently via Promise.allSettled():
 
-**Pass 1: Security Review** (Tier 1 — critical)
+**Pass 1: Security Review** (standard — critical)
 
 - Checks OWASP Top 10, injection, auth flaws, secrets
 - Output:
@@ -307,7 +307,7 @@ All 5 passes execute concurrently via Promise.allSettled():
     ```
     
 
-**Pass 2: Performance Review** (Tier 0)
+**Pass 2: Performance Review** (free)
 
 - Checks N+1 queries, re-renders, memory leaks
 - Output:
@@ -317,7 +317,7 @@ All 5 passes execute concurrently via Promise.allSettled():
     ```
     
 
-**Pass 3: Code Quality Review** (Tier 0)
+**Pass 3: Code Quality Review** (free)
 
 - Naming, duplication, complexity
 - Output:
@@ -327,7 +327,7 @@ All 5 passes execute concurrently via Promise.allSettled():
     ```
     
 
-**Pass 4: Test Coverage Review** (Tier 0)
+**Pass 4: Test Coverage Review** (free)
 
 - Untested paths, edge cases
 - Output:
@@ -337,7 +337,7 @@ All 5 passes execute concurrently via Promise.allSettled():
     ```
     
 
-**Pass 5: Standards Review** (Tier 0)
+**Pass 5: Standards Review** (free)
 
 - Project conventions (from project model)
 - Output:
@@ -383,7 +383,7 @@ Suggestions are improvements for future PRs.
 
 **Step 2: Write Characterization Tests**
 
-- Agent: `test_reviewer`, Tier 1
+- Agent: `test_reviewer`, standard tier
 - Generates tests that capture current behavior
 - All existing auth functions tested
 - **Result: 3 new tests generated**
@@ -448,7 +448,7 @@ Output: React 18.2.0 → 19.0.0 available
 
 Output: No known CVEs for v19.0.0
 
-**Step 3: Check Breaking Changes** → Success (Tier 1)
+**Step 3: Check Breaking Changes** → Success (standard)
 
 - Claude Sonnet analyzes changelog
 - Output: 2 breaking changes detected
@@ -466,9 +466,9 @@ Output: Upgrade React 18.2 → 19.0 in package.json
 
 - **FAILS:** Type error in `src/index.tsx:32` - React.FC signature changed
 - Tries `npm run test` — many failures
-- **Escalates to Tier 1**
+- **Escalates to standard tier**
 
-**Attempt 2:** Tier 1 agent analyzes React 19 migration guide
+**Attempt 2:** standard tier agent analyzes React 19 migration guide
 
 - Fixes: Update function component types from `React.FC<Props>` to plain functions
 - Updates 8 components
@@ -506,7 +506,7 @@ StepExecutor (per step)
     ↓
 AgentSpawner → PromptBuilder + ToolRegistry
     ↓
-ModelResolver (Tier 0/1/2)
+ModelResolver (free/standard/premium)
     ↓
 vscode.lm.sendChatRequest()
     ↓

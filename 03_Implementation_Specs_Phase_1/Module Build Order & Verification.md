@@ -634,7 +634,7 @@ npm run test src/generator/
 > [Refactor] Implement refactoring workflow (5 steps with inner loop): analyze → write characterization tests → [refactor → verify tests]* (loop) → summary. Key: public API invariant — stop if refactoring changes public interface.
 > 
 
-> [Review] Implement 5-pass code review (all parallel): security (Tier 1), performance, quality, test coverage, standards (all Tier 0). Consolidate findings. Review targets git diff.
+> [Review] Implement 5-pass code review (all parallel): security (standard tier), performance, quality, test coverage, standards (all free tier). Consolidate findings. Review targets git diff.
 > 
 
 > [Remaining three] Similar detailed workflows from the Workflow Definitions page.

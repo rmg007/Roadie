@@ -86,7 +86,7 @@ interface ExtensionShell {
 
 - `extension.ts` — activate/deactivate entry points, dependency injection container setup
 - `chat-participant.ts` — Registers @roadie chat participant, handles `vscode.ChatRequestHandler`
-- `sidebar-provider.ts` — WebviewViewProvider for project status sidebar
+- `sidebar-provider.ts` — WebviewViewProvider for project status sidebar *(deferred — not implemented in Phase 1/1.5)*
 - `status-bar.ts` — StatusBarItem showing current workflow state
 - `commands.ts` — Command palette registrations (roadie.init, roadie.rescan, roadie.reset)
 
@@ -809,7 +809,7 @@ src/
 ├── container.ts              // Dependency injection container
 ├── shell/
 │   ├── chat-participant.ts   // Chat Participant handler
-│   ├── sidebar-provider.ts   // Sidebar webview
+│   ├── sidebar-provider.ts   // Sidebar webview (deferred — not yet implemented)
 │   ├── status-bar.ts         // Status bar item
 │   └── commands.ts           // Command palette registrations
 ├── classifier/

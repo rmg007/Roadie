@@ -2,12 +2,7 @@
 
 ## How Passive Mode Works: Data Flow, State Management, Integration
 
-**⚠️ CRITICAL REVIEW UPDATES:** See the [📋 Comprehensive Review page](https://www.notion.so/Comprehensive-Review-Phase-1-Phase-1-5-Specs-33fc821ae63c815bb5e4c8d75467ba7d?pvs=21) for corrections needed:
-
-- **C1:** Chokidar → VS Code FileSystemWatcher (CRITICAL — entire API restructuring)
-- **C2:** Configuration defaults false (not true)
-- **C3:** Learning DB size 10MB (not 100MB)
-- **A3:** Single SQLite database (not two)
+> **✅ IMPLEMENTATION STATUS — 2026-04-14:** Phase 1.5 is fully implemented. All corrections listed in the pre-build review (C1–C3, A3) have been resolved — FileSystemWatcher is used throughout, configuration defaults are correct, the learning DB cap is 10MB, and a single SQLite file is used. The Notion review page is no longer the source of truth; all resolved issues are tracked in `Issues & Fixes Status Tracking Dashboard.md`.
 
 ---
 
@@ -539,6 +534,6 @@ This architecture shows how Phase 1.5 extends Phase 1 without breaking anything.
 
 **Phase 1 = Active (user initiates) + Phase 1.5 = Passive (automatic) = Complete invisibility**
 
-**See:** 📋 [Comprehensive Review Page](https://www.notion.so/Comprehensive-Review-Phase-1-Phase-1-5-Specs-33fc821ae63c815bb5e4c8d75467ba7d?pvs=21) for complete list of corrections and implementation priorities.
+All corrections from the pre-build review have been applied. See `Issues & Fixes Status Tracking Dashboard.md` for the full resolved list.
 
 Next: Detailed specs with corrections applied (Project Model Persistence, File Generator Manager, Section Manager with append-below merge, etc.)

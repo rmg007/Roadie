@@ -8,13 +8,13 @@
 
 | Workflow | Trigger Intent | Steps | Model Tiers | Key Feature | Page |
 | --- | --- | --- | --- | --- | --- |
-| Bug Fix | `bug_fix` | 8 | Tier 0→1→2 | Escalation on test failure | [Detail](#bug-fix) |
-| Feature Dev | `feature` | 7 | Tier 0→1 | Human approval at step 2 | [Detail](#feature) |
-| Refactoring | `refactor` | 5+loop | Tier 0→1 | Incremental with inner loop | [Detail](#refactor) |
+| Bug Fix | `bug_fix` | 8 | free→standard→premium | Escalation on test failure | [Detail](#bug-fix) |
+| Feature Dev | `feature` | 7 | free→standard | Human approval at step 2 | [Detail](#feature) |
+| Refactoring | `refactor` | 5+loop | free→standard | Incremental with inner loop | [Detail](#refactor) |
 | Code Review | `review` | 5∥ | Mix | 5 parallel passes | [Detail](#review) |
-| Documentation | `document` | 4 | Tier 0 | Reads code as source of truth | [Detail](#document) |
-| Dependency Mgmt | `dependency` | 5 | Tier 0→1 | One-at-a-time upgrades | [Detail](#dependency) |
-| Onboarding | `onboard` | 4 | Tier 0 | Architecture overview | [Detail](#onboard) |
+| Documentation | `document` | 4 | free | Reads code as source of truth | [Detail](#document) |
+| Dependency Mgmt | `dependency` | 5 | free→standard | One-at-a-time upgrades | [Detail](#dependency) |
+| Onboarding | `onboard` | 4 | free | Architecture overview | [Detail](#onboard) |
 
 ---
 
@@ -25,38 +25,38 @@
 ```
 INIT
   ↓
-Step 1: Locate Error Source [Tier 0]
+Step 1: Locate Error Source [free]
   ↓ success → Step 2
   ↓ fail → FAIL (no retry)
 
-Step 2: Diagnose Root Cause [Tier 1]
+Step 2: Diagnose Root Cause [standard]
   ↓ success → Step 3
   ↓ fail → FAIL (report diagnosis failed)
 
-Step 3: Generate & Apply Fix [Tier 0→1→2]
+Step 3: Generate & Apply Fix [free→standard→premium]
   ↓ success → Step 4
   ↓ fail → RETRY (attempts 1-3, escalate per sequence)
   ↓ fail after 3 → Step 4 (skip, report)
 
 Step 4: Verify Fix (Run Tests) [N/A - Shell]
   ↓ pass → Step 5
-  ↓ fail → ESCALATE to Step 3 attempt N+1, Tier 1
+  ↓ fail → ESCALATE to Step 3 attempt N+1, standard tier
        (include test output in prompt context)
   ↓ timeout → Same as fail
 
-Step 5: Scan for Sibling Bugs [Tier 0]
+Step 5: Scan for Sibling Bugs [free]
   ↓ found → Step 6
   ↓ none → Step 7
 
-Step 6: Fix Siblings [Tier 0→1→2]
+Step 6: Fix Siblings [free→standard→premium]
   ↓ success → Step 7
   ↓ fail → Continue anyway (Step 7)
 
-Step 7: Add Regression Guard [Tier 0]
+Step 7: Add Regression Guard [free]
   ↓ success → Step 8
   ↓ fail → Continue anyway (Step 8)
 
-Step 8: Generate Summary [Tier 0]
+Step 8: Generate Summary [free]
   ↓ → COMPLETE
 ```
 
@@ -66,7 +66,7 @@ Step 8: Generate Summary [Tier 0]
 
 **Agent Role:** `diagnostician`  
 
-**Model Tier:** Tier 0  
+**Model Tier:** free  
 
 **Tools:** file_search, grep, git_log, read_file  
 
@@ -123,7 +123,7 @@ If you cannot locate the error, report what you tried and why it failed.
 
 **Agent Role:** `diagnostician`  
 
-**Model Tier:** Tier 1 (more nuanced analysis)  
+**Model Tier:** standard (more nuanced analysis)  
 
 **Tools:** read_file, grep, code_analysis  
 
@@ -188,7 +188,7 @@ Do not suggest fixes—diagnose only.
 
 **Agent Role:** `fixer`  
 
-**Model Tier:** Tier 0 (escalate on test failure)  
+**Model Tier:** free (escalate on test failure)  
 
 **Tools:** read_file, edit_file, write_file, lint, format  
 
@@ -197,9 +197,9 @@ Do not suggest fixes—diagnose only.
 **Escalation:** If Step 4 (tests) fails, retry Step 3 with:
 
 - Attempt 2: Same tier, refined prompt + test output
-- Attempt 3: Tier 1, test output + diagnostic logging request
-- Attempt 4: Tier 1, alternative approach (suggest different fix strategy)
-- Attempt 5: Tier 2, comprehensive analysis
+- Attempt 3: standard tier, test output + diagnostic logging request
+- Attempt 4: standard tier, alternative approach (suggest different fix strategy)
+- Attempt 5: premium tier, comprehensive analysis
 - Attempt 6: Report failure
 
 **Prompt Template:**
@@ -288,7 +288,7 @@ end
 
 **Step 5:** Grep codebase for similar bug patterns. Return list of files.  
 
-**Step 6:** For each similar file, apply the same fix. Tier 0→1 escalation.  
+**Step 6:** For each similar file, apply the same fix. free→standard escalation.  
 
 **Step 7:** Generate a test that would catch this bug. Add to test suite.  
 
@@ -307,33 +307,33 @@ end
 ```
 INIT
   ↓
-Step 1: Analyze Requirements [Tier 0]
+Step 1: Analyze Requirements [free]
   ↓ → Step 2
 
-Step 2: Present Plan for Approval [Tier 0→1]
+Step 2: Present Plan for Approval [free→standard]
   ↓ user clicks "Approve" → Step 3
   ↓ user clicks "Revise" → Step 1 (loop with feedback)
   ↓ timeout (5 min) → PAUSED (wait indefinitely)
 
-Step 3: Delegate to Layer Agents [Tier 0→1, parallel]
+Step 3: Delegate to Layer Agents [free→standard, parallel]
   ├─ Database Agent
   ├─ Backend Agent
   ├─ Frontend Agent
   ↓ all complete → Step 4
   ↓ one fails → retry independently (up to 2x)
 
-Step 4: Integrate Layers [Tier 0]
+Step 4: Integrate Layers [free]
   ↓ → Step 5
 
 Step 5: Run Tests [N/A]
   ↓ pass → Step 6
   ↓ fail → PAUSED (report to developer)
 
-Step 6: Quality Review [Tier 1]
+Step 6: Quality Review [standard]
   ↓ pass → Step 7
   ↓ fail → PAUSED (report findings)
 
-Step 7: Generate Commit Messages [Tier 0]
+Step 7: Generate Commit Messages [free]
   ↓ → COMPLETE
 ```
 
@@ -403,10 +403,10 @@ Present this plan to the developer for approval or revision.
 ### State Machine (with Inner Loop)
 
 ```
-Step 1: Analyze Structure [Tier 0]
+Step 1: Analyze Structure [free]
   ↓ → Step 2
 
-Step 2: Write Characterization Tests [Tier 1]
+Step 2: Write Characterization Tests [standard]
   ↓ tests pass → Step 3
   ↓ fail → FAIL (cannot capture current behavior)
 
@@ -418,7 +418,7 @@ Step 3: Refactor Incrementally [Loop]
   │  └─ Fail → REVERT change, try alternative
   └─ No more refactorings → exit loop → Step 4
 
-Step 4: Generate Summary [Tier 0]
+Step 4: Generate Summary [free]
   ↓ → COMPLETE
 ```
 
@@ -488,14 +488,14 @@ end
 INIT
   ↓
 Spawn 5 agents in parallel via Promise.allSettled():
-  ├─ Pass 1: Security Review [Tier 1]
-  ├─ Pass 2: Performance Review [Tier 0]
-  ├─ Pass 3: Code Quality Review [Tier 0]
-  ├─ Pass 4: Test Coverage Review [Tier 0]
-  └─ Pass 5: Standards Review [Tier 0]
+  ├─ Pass 1: Security Review [standard]
+  ├─ Pass 2: Performance Review [free]
+  ├─ Pass 3: Code Quality Review [free]
+  ├─ Pass 4: Test Coverage Review [free]
+  └─ Pass 5: Standards Review [free]
   ↓ all complete (or timeout)
   ↓
-Step: Consolidate Findings [Tier 0]
+Step: Consolidate Findings [free]
   ↓
 COMPLETE
 ```
@@ -549,14 +549,14 @@ end
 ```
 INIT
   ↓
-Step 1: Identify Documentation Target [Tier 0]
+Step 1: Identify Documentation Target [free]
   ↓ → Step 2
 
-Step 2: Read Source Code [Tier 0]
+Step 2: Read Source Code [free]
   ↓ code read → Step 3
   ↓ file not found → FAIL (report missing file)
 
-Step 3: Generate Documentation [Tier 0]
+Step 3: Generate Documentation [free]
   ↓ generated → Step 4
   ↓ fail → RETRY once (same tier)
 
@@ -569,7 +569,7 @@ Step 4: Write Documentation File [N/A - file I/O]
 
 **Step 1 — Identify Target**
 - **Role:** `documentarian`
-- **Tier:** Tier 0
+- **Tier:** free
 - **Tools:** `file_search`, `grep`
 - **Input:** User's documentation request
 - **Prompt Template:**
@@ -585,14 +585,14 @@ Step 4: Write Documentation File [N/A - file I/O]
 
 **Step 2 — Read Source Code**
 - **Role:** `documentarian`
-- **Tier:** Tier 0
+- **Tier:** free
 - **Tools:** `read_file`
 - **Input:** File path(s) from Step 1
 - **Action:** Read the source files. No LLM call required — just file I/O.
 
 **Step 3 — Generate Documentation**
 - **Role:** `documentarian`
-- **Tier:** Tier 0
+- **Tier:** free
 - **Timeout:** 45s
 - **Prompt Template:**
   ```
@@ -631,14 +631,14 @@ Step 4: Write Documentation File [N/A - file I/O]
 ```
 INIT
   ↓
-Step 1: Audit Current Dependencies [Tier 0]
+Step 1: Audit Current Dependencies [free]
   ↓ → Step 2
 
-Step 2: Identify Target Updates [Tier 0→1]
+Step 2: Identify Target Updates [free→standard]
   ↓ updates identified → Step 3
   ↓ all up-to-date → COMPLETE (report)
 
-Step 3: Update One Dependency [Tier 0]
+Step 3: Update One Dependency [free]
   [loop per dependency, one at a time]
   ↓ updated → Step 4
 
@@ -646,7 +646,7 @@ Step 4: Verify (Run Tests) [N/A - shell]
   ↓ pass → loop back to Step 3 (next dependency)
   ↓ fail → PAUSED (report breaking change to developer)
 
-Step 5: Generate Summary Report [Tier 0]
+Step 5: Generate Summary Report [free]
   ↓ → COMPLETE
 ```
 
@@ -654,7 +654,7 @@ Step 5: Generate Summary Report [Tier 0]
 
 **Step 1 — Audit Current Dependencies**
 - **Role:** `project_analyzer`
-- **Tier:** Tier 0
+- **Tier:** free
 - **Tools:** `read_file`
 - **Action:** Read `package.json`, scan lock file for pinned versions.
 - **Prompt Template:**
@@ -673,7 +673,7 @@ Step 5: Generate Summary Report [Tier 0]
 
 **Step 2 — Identify Target Updates**
 - **Role:** `project_analyzer`
-- **Tier:** Tier 1 (may need to reason about breaking changes)
+- **Tier:** standard (may need to reason about breaking changes)
 - **Prompt Template:**
   ```
   Given this dependency audit:
@@ -689,7 +689,7 @@ Step 5: Generate Summary Report [Tier 0]
 
 **Step 3 — Update One Dependency (Loop)**
 - **Role:** `fixer`
-- **Tier:** Tier 0
+- **Tier:** free
 - **Tools:** `shell` (run package manager update command)
 - **Action per iteration:**
   ```
@@ -715,13 +715,13 @@ Step 5: Generate Summary Report [Tier 0]
 ```
 INIT
   ↓
-Step 1: Read Project Model [Tier 0]
+Step 1: Read Project Model [free]
   ↓ model loaded → Step 2
 
-Step 2: Generate Architecture Overview [Tier 0]
+Step 2: Generate Architecture Overview [free]
   ↓ → Step 3
 
-Step 3: Generate Getting-Started Guide [Tier 0]
+Step 3: Generate Getting-Started Guide [free]
   ↓ → Step 4
 
 Step 4: Stream Summary to Developer [N/A]
@@ -736,7 +736,7 @@ Step 4: Stream Summary to Developer [N/A]
 
 **Step 2 — Generate Architecture Overview**
 - **Role:** `documentarian`
-- **Tier:** Tier 0
+- **Tier:** free
 - **Timeout:** 45s
 - **Prompt Template:**
   ```
@@ -760,7 +760,7 @@ Step 4: Stream Summary to Developer [N/A]
 
 **Step 3 — Generate Getting-Started Guide**
 - **Role:** `documentarian`
-- **Tier:** Tier 0
+- **Tier:** free
 - **Prompt Template:**
   ```
   Using the architecture overview:

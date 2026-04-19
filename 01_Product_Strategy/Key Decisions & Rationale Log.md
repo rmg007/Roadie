@@ -154,8 +154,8 @@ This page captures the reasoning behind key architectural and product decisions.
 
 ## D11: Notion as Shared Editing Surface
 
-**Decision:** Use Notion as the collaborative editing surface for all specification documents, with GitHub repo as the eventual canonical source for code.
+**Decision (original):** Use Notion as the collaborative editing surface for all specification documents, with GitHub repo as the eventual canonical source for code.
 
-**Rationale:** Multiple Claude chat agents need to read and write the same documents. Notion MCP enables this. The tradeoff (no version control, no diffs, no branching) is acceptable for specification documents that are reviewed by humans before becoming implementation specs.
+**Rationale:** Multiple Claude chat agents needed to read and write the same documents. Notion MCP enabled this. The tradeoff (no version control, no diffs, no branching) was acceptable for specification documents reviewed by humans before becoming implementation specs.
 
-**Long-term plan:** Move to GitHub repo when implementation starts. Notion remains the working draft surface; repo is the canonical source.
+**Update — 2026-04-14:** The long-term plan has been executed. Implementation is complete (Phase 1 and Phase 1.5). All specification documents have been exported to `C:\dev\Roadie\Roadie_Project_Documentations_Only\` and are now the **canonical source of truth**. Notion is no longer used as a spec surface. Coding agents must read local markdown files only — do not fetch from Notion. Any future spec changes must be made to the local files first.

@@ -90,7 +90,7 @@ cd C:\dev\Roadie\roadie
 npx @vscode/vsce package
 ```
 
-This produces a file such as `roadie-0.5.0.vsix` in the same directory.
+This produces a file such as `roadie-1.0.0.vsix` in the same directory.
 
 Important notes:
 
@@ -108,7 +108,7 @@ Important notes:
 **Option B — Command line**
 
 ```bash
-code --install-extension roadie-0.5.0.vsix
+code --install-extension roadie-1.0.0.vsix
 ```
 
 ### Step 3: Verify installation
@@ -120,12 +120,12 @@ code --install-extension roadie-0.5.0.vsix
 Expected log output on a successful activation:
 
 ```
-2026-04-14 09:23:45.123 [INFO] Roadie v0.5.0 activating…
-2026-04-14 09:23:45.156 [INFO] Workspace root: C:\my-project
-2026-04-14 09:23:45.201 [INFO] Starting startup project analysis…
-2026-04-14 09:23:46.304 [INFO] Startup analysis complete — 12 tech entries, 4 commands
-2026-04-14 09:23:46.891 [INFO] Files written: .github/copilot-instructions.md, .github/AGENTS.md
-2026-04-14 09:23:46.895 [INFO] Roadie activated ✓
+2026-04-17 09:23:45.123 [INFO] Roadie v1.0.0 activating…
+2026-04-17 09:23:45.156 [INFO] Workspace root: C:\my-project
+2026-04-17 09:23:45.201 [INFO] Starting startup project analysis…
+2026-04-17 09:23:46.304 [INFO] Startup analysis complete — 12 tech entries, 4 commands
+2026-04-17 09:23:46.891 [INFO] Files written: .github/copilot-instructions.md, AGENTS.md, CLAUDE.md, .cursor/rules/project.mdc
+2026-04-17 09:23:46.895 [INFO] Roadie activated ✓
 ```
 
 ### Step 4: Use @roadie in chat

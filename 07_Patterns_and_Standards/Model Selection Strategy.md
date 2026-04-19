@@ -2,13 +2,13 @@
 
 ## Tier Hierarchy, Escalation, & Cost Awareness
 
-Roadie uses three model tiers mapped to the VS Code Language Model API. Workflows always start at Tier 0 (free). Escalation only happens on failure.
+Roadie uses three model tiers mapped to the VS Code Language Model API. Workflows always start at the free tier. Escalation only happens on failure.
 
 ---
 
 ## Model Tier Hierarchy
 
-### **Tier 0: Free** (Cost: 0× premium requests)
+### Free Tier (Cost: 0× premium requests)
 
 **Available Models:**
 
@@ -32,12 +32,12 @@ Roadie uses three model tiers mapped to the VS Code Language Model API. Workflow
 - All bug-fix workflow steps except escalation
 - Feature workflow steps 1, 4, 5, 7 (high-level planning/integration)
 - Refactor steps except characterization test generation
-- Review: Performance, Quality, Test Coverage, Standards (all Tier 0)
-- Documentation, Dependency, Onboarding: All Tier 0
+- Review: Performance, Quality, Test Coverage, Standards (all free tier)
+- Documentation, Dependency, Onboarding: All free tier
 
 ---
 
-### **Tier 1: Standard** (Cost: 1× premium request per call)
+### Standard Tier (Cost: 1× premium request per call)
 
 **Available Models:**
 
@@ -47,13 +47,13 @@ Roadie uses three model tiers mapped to the VS Code Language Model API. Workflow
 
 **Use Cases:**
 
-- Escalation after Tier 0 fails
+- Escalation after free tier fails
 - More complex reasoning, multi-step logic
 - Security-sensitive tasks (code review)
 
 **Characteristics:**
 
-- Slower than Tier 0 (typically 5-10s)
+- Slower than free tier (typically 5-10s)
 - Better reasoning, fewer errors
 - Costs 1 premium request (Copilot Pro: 300/month)
 
@@ -62,12 +62,12 @@ Roadie uses three model tiers mapped to the VS Code Language Model API. Workflow
 - Bug-fix workflow: Step 2 (diagnose), escalation for step 3 (fix)
 - Feature: Step 2 (plan approval), Step 3 parallel (layer planning), Step 6 (quality review)
 - Refactor: Step 2 (characterization tests)
-- Review: Security review (Tier 1 only; others Tier 0)
+- Review: Security review (standard tier only; others free tier)
 - Dependency: Step 3 (check breaking changes)
 
 ---
 
-### **Tier 2: Premium** (Cost: 3× premium requests per call)
+### Premium Tier (Cost: 3× premium requests per call)
 
 **Available Models:**
 
@@ -75,7 +75,7 @@ Roadie uses three model tiers mapped to the VS Code Language Model API. Workflow
 
 **Use Cases:**
 
-- Last-resort escalation after Tier 1 fails
+- Last-resort escalation after standard tier fails
 - Extremely difficult problems
 - Rare in practice (<5% of workflow executions)
 
@@ -87,7 +87,7 @@ Roadie uses three model tiers mapped to the VS Code Language Model API. Workflow
 
 **Default Assignment:**
 
-- Only on 3rd failure (after Tier 0 AND Tier 1 have failed)
+- Only on 3rd failure (after free AND standard tiers have failed)
 - Not pre-assigned to any step; purely escalation
 
 ---
@@ -215,7 +215,7 @@ export class ModelResolver {
 
 1. `ModelUnavailableError` MUST be caught at the `WorkflowEngine.execute()` boundary and surfaced to the user via `vscode.window.showErrorMessage()` with "Check Subscription" and "Configure API Key" action buttons.
 2. Callers MUST NOT retry the same tier on `ModelUnavailableError` — the resolver has already walked the full preference list and the fallback chain.
-3. Callers MAY retry with `modelPreference: 'economy'` (forces Tier 0) if the user re-triggers the workflow after a premium failure.
+3. Callers MAY retry with `modelPreference: 'economy'` (forces free tier) if the user re-triggers the workflow after a premium failure.
 4. `MODEL_PRIORITY` is exhaustive — every string in any `TIER_PREFERENCE[tier]` array MUST have a corresponding entry. Tests enforce this: see `model-priority.test.ts` below.
 
 ### Unit Tests (Mandatory)
@@ -303,26 +303,26 @@ describe('ModelResolver', () => {
 ### Escalation Sequence
 
 ```
-Attempt 1 (Tier 0, Original Prompt):
+Attempt 1 (free tier, original prompt):
   ↓ [success] → step complete, move to next step
   ↓ [failure] → attempt 2
 
-Attempt 2 (Tier 0, Refined Prompt with Error Context):
+Attempt 2 (free tier, refined prompt with error context):
   Include: "Your previous attempt failed: <error>. Try a different approach."
   ↓ [success] → step complete
   ↓ [failure] → attempt 3
 
-Attempt 3 (Tier 1, Error + Diagnostic Logging):
+Attempt 3 (standard tier, error + diagnostic logging):
   Higher tier, same prompt + request for debugging output
   ↓ [success] → step complete
   ↓ [failure] → attempt 4
 
-Attempt 4 (Tier 1, Alternative Approach):
+Attempt 4 (standard tier, alternative approach):
   Request completely different strategy
   ↓ [success] → step complete
   ↓ [failure] → attempt 5
 
-Attempt 5 (Tier 2, Deep Analysis):
+Attempt 5 (premium tier, deep analysis):
   Premium model, comprehensive analysis
   ↓ [success] → step complete
   ↓ [failure] → attempt 6
@@ -341,13 +341,13 @@ Attempt 6 (Developer Escalation):
 ```
 Bug-fix workflow, step 3 (generate fix):
 
-Attempt 1: Tier 0 (free) → fails
-Attempt 2: Tier 0 (free) → fails
-Attempt 3: Tier 1 (1 premium) → fails
-Attempt 4: Tier 1 (1 premium) → fails
-Attempt 5: Tier 2 (3 premium) → succeeds
+Attempt 1: free tier → fails
+Attempt 2: free tier → fails
+Attempt 3: standard tier (1 premium) → fails
+Attempt 4: standard tier (1 premium) → fails
+Attempt 5: premium tier (3 premium) → succeeds
 
-Total cost: 5 premium requests (Tier 2: 3×, Tier 1: 2×1)
+Total cost: 5 premium requests (premium tier: 3×, standard tier: 2×)
 
 Budget impact: Copilot Pro (300 premium/month) = 60 complete workflows
 ```
@@ -360,14 +360,14 @@ Budget impact: Copilot Pro (300 premium/month) = 60 complete workflows
 
 | Step | Name | Tier | Reason |
 | --- | --- | --- | --- |
-| 1 | Locate error source | Tier 0 | File search, simple grep |
-| 2 | Diagnose root cause | **Tier 1** | More nuanced analysis |
-| 3 | Generate and apply fix | Tier 0 → Tier 1/2 (escalation) | Attempt fix at Tier 0 first |
+| 1 | Locate error source | free | File search, simple grep |
+| 2 | Diagnose root cause | **standard** | More nuanced analysis |
+| 3 | Generate and apply fix | free → standard/premium (escalation) | Attempt fix at free tier first |
 | 4 | Verify fix (run tests) | N/A | Shell command (no LLM) |
-| 5 | Scan for sibling bugs | Tier 0 | Pattern search |
-| 6 | Fix siblings (if found) | Tier 0 → Tier 1/2 (escalation) | Same as step 3 |
-| 7 | Add regression guard | Tier 0 | Simple test generation |
-| 8 | Generate summary | Tier 0 | Summarization |
+| 5 | Scan for sibling bugs | free | Pattern search |
+| 6 | Fix siblings (if found) | free → standard/premium (escalation) | Same as step 3 |
+| 7 | Add regression guard | free | Simple test generation |
+| 8 | Generate summary | free | Summarization |
 
 ---
 
@@ -375,15 +375,15 @@ Budget impact: Copilot Pro (300 premium/month) = 60 complete workflows
 
 | Step | Name | Tier | Reason |
 | --- | --- | --- | --- |
-| 1 | Analyze requirements | Tier 0 | Parse user request |
-| 2 | Present plan for approval | **Tier 0 → Tier 1** | Complex planning, needs quality |
-| 3a | Database Agent | Tier 0 → Tier 1 | Schema changes are risky |
-| 3b | Backend Agent | Tier 0 → Tier 1 | API design |
-| 3c | Frontend Agent | Tier 0 | UI generation |
-| 4 | Integrate layers | Tier 0 | Merging code |
+| 1 | Analyze requirements | free | Parse user request |
+| 2 | Present plan for approval | **free → standard** | Complex planning, needs quality |
+| 3a | Database Agent | free → standard | Schema changes are risky |
+| 3b | Backend Agent | free → standard | API design |
+| 3c | Frontend Agent | free | UI generation |
+| 4 | Integrate layers | free | Merging code |
 | 5 | Run tests | N/A | Shell command |
-| 6 | Quality review | **Tier 1** | Security + perf + quality |
-| 7 | Generate commit messages | Tier 0 | Template-based |
+| 6 | Quality review | **standard** | Security + perf + quality |
+| 7 | Generate commit messages | free | Template-based |
 
 ---
 
@@ -391,11 +391,11 @@ Budget impact: Copilot Pro (300 premium/month) = 60 complete workflows
 
 | Pass | Name | Tier | Reason |
 | --- | --- | --- | --- |
-| 1 | Security Review | **Tier 1** | Security is critical, needs deeper analysis |
-| 2 | Performance Review | Tier 0 | Pattern matching (N+1, complexity) |
-| 3 | Code Quality Review | Tier 0 | Naming, duplication detection |
-| 4 | Test Coverage Review | Tier 0 | Coverage gap analysis |
-| 5 | Standards Review | Tier 0 | Project convention checking |
+| 1 | Security Review | **standard** | Security is critical, needs deeper analysis |
+| 2 | Performance Review | free | Pattern matching (N+1, complexity) |
+| 3 | Code Quality Review | free | Naming, duplication detection |
+| 4 | Test Coverage Review | free | Coverage gap analysis |
+| 5 | Standards Review | free | Project convention checking |
 
 ---
 
@@ -405,8 +405,8 @@ Budget impact: Copilot Pro (300 premium/month) = 60 complete workflows
 
 **Conservative estimate:**
 
-- Bug-fix workflow: 5 premium avg (Tier 1 or escalation) × 60 workflows = 300 premium
-- Feature workflow: 8 premium avg (multiple Tier 1 steps) × 30 workflows = 240 premium
+- Bug-fix workflow: 5 premium avg (standard or escalation) × 60 workflows = 300 premium
+- Feature workflow: 8 premium avg (multiple standard tier steps) × 30 workflows = 240 premium
 - Code review: 1 premium (security pass only) × 100 reviews = 100 premium
 - Other workflows (refactor, doc, etc.): 20 premium
 
@@ -414,10 +414,10 @@ Budget impact: Copilot Pro (300 premium/month) = 60 complete workflows
 
 **Mitigation:**
 
-- Tier 0 by default everywhere possible
+- free tier by default everywhere possible
 - Escalation only on failure
-- Security review (only Tier 1 step) can be skipped with setting
-- User can set `roadie.modelPreference` to `'economy'` (Tier 0 only, reduced quality)
+- Security review (only standard tier step) can be skipped with setting
+- User can set `roadie.modelPreference` to `'economy'` (free tier only, reduced quality)
 
 ---
 
@@ -433,9 +433,9 @@ Budget impact: Copilot Pro (300 premium/month) = 60 complete workflows
 
 **Values:**
 
-- `"economy"` — Use Tier 0 only, no escalation (cheapest, lower quality)
-- `"balanced"` — Tier 0 → escalate to Tier 1 on failure (default, good cost/quality)
-- `"quality"` — Start at Tier 1 (expensive, highest quality)
+- `"economy"` — Use free tier only, no escalation (cheapest, lower quality)
+- `"balanced"` — Free tier → escalate to standard on failure (default, good cost/quality)
+- `"quality"` — Start at standard tier (expensive, highest quality)
 
 **Effect:** Changes default model tier assignment, but escalation logic still applies.
 

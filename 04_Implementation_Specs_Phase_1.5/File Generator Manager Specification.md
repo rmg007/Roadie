@@ -37,6 +37,61 @@ It does NOT generate content itself — that's the job of the 9 generator sub-mo
 
 ---
 
+## Generation Workflow (v1.0.0)
+
+```
+init → scan → template selection → file write
+```
+
+**Step 1 — init:** FileGeneratorManager is initialized during extension activation. It subscribes to `PersistentProjectModel` change events and registers all generator sub-modules.
+
+**Step 2 — scan:** On model change or `generateAll()` call, the manager reads the `ProjectModelDelta` to determine which file types are affected. IDE detection (`detectIDEs()`) is called once per session and cached.
+
+**Step 3 — template selection:** Each triggered generator receives the full `ProjectModel` and returns `GeneratedContent` (sections array). Template selection is static in v1.0.0 — all generators produce their full template; Section Manager handles merge.
+
+**Step 4 — file write (async):** Generated content is passed to Section Manager which:
+1. Reads existing file content (if any).
+2. Merges: preserves user-edited sections (`<!-- roadie:user-edit -->` markers), overwrites Roadie-owned sections.
+3. Writes atomically (temp file + rename).
+4. Returns `WriteResult` with `written`, `merged`, `deferred` flags.
+5. If file is open in editor (`deferred: true`), write is queued for next save.
+
+**Conflict detection:** If a user has modified a Roadie-owned section (detected by hash mismatch on owned markers), the manager logs a warning but does NOT overwrite. User edits take precedence.
+
+---
+
+## Templates Reference (v1.0.0)
+
+| Template / Generator | Output File | Consumer |
+|---|---|---|
+| Copilot Instructions Generator | `.github/copilot-instructions.md` | GitHub Copilot |
+| Agent Definitions Generator | `AGENTS.md` | Any AI agent |
+| CLAUDE.md Generator | `CLAUDE.md` | Claude Code / Claude tools |
+| Cursor Rules Generator | `.cursor/rules/project.mdc` | Cursor IDE |
+| Path Instructions Generator | `.github/instructions/*.md` | Path-scoped context |
+| Hooks Generator | `src/generator/templates/claude-hooks.ts` | Claude Code (Phase 2, not yet called) |
+| Agent Definitions Template | `src/generator/templates/agent-definitions.ts` | MCP clients (Phase 2, not yet called) |
+| Codebase Dictionary Generator | `.roadie/dictionary.db` (SQLite) | Internal dictionary queries |
+| Scan Summary | `.roadie/last-scan.json` | Machine-readable metadata |
+
+---
+
+## Error Handling & Rollback (v1.0.0)
+
+| Error Condition | Behavior |
+|---|---|
+| File already exists (no user edits) | Overwrite with merged content |
+| File exists with user edits | Preserve user sections; overwrite Roadie sections only |
+| File open in editor (unsaved) | Defer write; queue for next save via `deferredWrites` |
+| Disk write fails (permissions, disk full) | Log error to Output channel; skip this file; continue with remaining |
+| Template not found for file type | Log error; skip file; continue with remaining |
+| Generator throws exception | Catch, log, increment error counter; continue with remaining generators |
+| All generators fail | Log summary error; do not surface to user (silent degradation) |
+
+No partial rollback is implemented — each file is written independently. A failed write to one file does not affect others.
+
+---
+
 ## Architecture
 
 ```

@@ -2,6 +2,13 @@
 
 **CONFIDENTIAL** · Version 1.0 — April 2026
 
+> ## ✅ Implementation Status — 2026-04-17
+>
+> **Phase 1 (Active Mode): COMPLETE** — All milestones 0–13 implemented.  
+> **Phase 1.5 (Passive Mode): COMPLETE** — All milestones implemented (M15, M16, M19, M21, M22, M23, M24).  
+> **v1.0.0 shipped (2026-04-17)** — Both phases are live in `../roadie-App/` and stable. IDE detection (`detector` module) and public API surface (`api` module) added.  
+> **Phase 2 (MCP Server):** Fully specified, not yet built. Deferred to v1.1+.
+
 ---
 
 ## How to Read This Document
@@ -78,7 +85,7 @@ All code is written by AI agents. Module specifications are detailed enough for 
 
 # Phase 1 Milestones — Active Mode
 
-## Milestone 0: Project Scaffolding
+## Milestone 0: Project Scaffolding — ✅ COMPLETE
 
 **What is built:** Full project skeleton — build chain, test harness, extension manifest, minimal Chat Participant.
 
@@ -130,7 +137,7 @@ All code is written by AI agents. Module specifications are detailed enough for 
 
 ---
 
-## Milestone 1: Mock Infrastructure + Model Resolver
+## Milestone 1: Mock Infrastructure + Model Resolver — ✅ COMPLETE
 
 **What is built:** The mock/stub layer for the Language Model API and the model resolver that maps tiers to available models. This is permanent test infrastructure, not throwaway scaffolding.
 
@@ -170,7 +177,7 @@ All code is written by AI agents. Module specifications are detailed enough for 
 
 ---
 
-## Milestone 2: Intent Classifier
+## Milestone 2: Intent Classifier — ✅ COMPLETE
 
 **What is built:** The two-tier intent classification system. Tier 1 is local keyword/regex matching. Tier 2 is LLM-based classification (tested with mocks, manually verified with real models).
 
@@ -200,7 +207,7 @@ The intent classifier receives a developer chat prompt (string) and returns a `C
 
 ---
 
-## Milestone 3: Workflow Engine Core
+## Milestone 3: Workflow Engine Core — ✅ COMPLETE
 
 **What is built:** The state machine workflow engine — sequential step execution, retry with escalation, cancellation, and timeout handling. No parallel execution yet (added in Milestone 9).
 
@@ -236,7 +243,7 @@ The workflow engine is a finite state machine. It receives a `WorkflowDefinition
 
 ---
 
-## Milestone 4: Agent Spawner + Prompt Builder
+## Milestone 4: Agent Spawner + Prompt Builder — ✅ COMPLETE
 
 **What is built:** The agent spawner that creates ephemeral subagents with role-specific prompts, scoped tools, and model selection. The prompt builder that constructs three-layer prompts (role + context + task).
 
@@ -267,7 +274,7 @@ The agent spawner receives an `AgentConfig` (role, model tier, tools, prompt tem
 
 ---
 
-## Milestone 5: Lazy Project Model (Node.js/TypeScript)
+## Milestone 5: Lazy Project Model (Node.js/TypeScript) — ✅ COMPLETE
 
 **What is built:** The project analyzer (Node.js plugin only) and in-memory project model. Reads `package.json`, lock files, `tsconfig.json`, test runner config, linter/formatter config. Stores results in a SQLite database. Provides serialized context for LLM prompts.
 
@@ -303,7 +310,7 @@ The project analyzer has a generic interface (`AnalyzerPlugin`) from the start, 
 
 ---
 
-## Milestone 5.5: Wire-Up Spike (End-to-End Validation)
+## Milestone 5.5: Wire-Up Spike (End-to-End Validation) — ✅ COMPLETE
 
 > **Revision note (ROAD-1):** This milestone was added to validate the full data flow before investing in the complete 8-step bug-fix workflow in M6. Five milestones of infrastructure (M1–M5) precede the first end-to-end test. If the Chat Participant → Intent Classifier → Workflow Engine → Agent Spawner → Project Model data flow has a design flaw, this spike catches it early.
 > 
@@ -331,7 +338,7 @@ The project analyzer has a generic interface (`AnalyzerPlugin`) from the start, 
 
 ---
 
-## Milestone 6: Bug Fix Workflow (End-to-End)
+## Milestone 6: Bug Fix Workflow (End-to-End) — ✅ COMPLETE
 
 **What is built:** The first complete workflow — bug fix — wired end-to-end: chat input → intent classification → workflow engine → agent spawner → project model context → streamed response. This is the "first proof" milestone.
 
@@ -363,7 +370,7 @@ Wire the full active-mode data flow. The Chat Participant handler receives a pro
 
 ---
 
-## Milestone 7: Basic File Generation
+## Milestone 7: Basic File Generation — ✅ COMPLETE
 
 **What is built:** The file generator that produces `.github/copilot-instructions.md` and `AGENTS.md` from the project model. Section ownership markers. No edit detection yet (added in Phase 1.5).
 
@@ -392,7 +399,7 @@ Wire the full active-mode data flow. The Chat Participant handler receives a pro
 
 ---
 
-## Milestone 8: Passthrough Mode + General Chat Enhancement
+## Milestone 8: Passthrough Mode + General Chat Enhancement — ✅ COMPLETE
 
 **What is built:** When the intent classifier returns `general_chat`, Roadie enriches the prompt with project model context and forwards to the underlying model.
 
@@ -409,7 +416,7 @@ Wire the full active-mode data flow. The Chat Participant handler receives a pro
 
 ---
 
-## Milestone 9: Feature Development Workflow
+## Milestone 9: Feature Development Workflow — ✅ COMPLETE
 
 **What is built:** The feature development workflow with plan approval (human-in-the-loop) and parallel layer delegation.
 
@@ -434,7 +441,7 @@ Wire the full active-mode data flow. The Chat Participant handler receives a pro
 
 ---
 
-## Milestone 10: Refactoring Workflow
+## Milestone 10: Refactoring Workflow — ✅ COMPLETE
 
 **What is built:** The refactoring workflow with characterization test writing, incremental refactoring, and safety verification after each step.
 
@@ -452,7 +459,7 @@ Wire the full active-mode data flow. The Chat Participant handler receives a pro
 
 ---
 
-## Milestone 11: Code Review Workflow
+## Milestone 11: Code Review Workflow — ✅ COMPLETE
 
 **What is built:** The 5-pass parallel code review workflow covering security, performance, code quality, test coverage, and project standards.
 
@@ -470,7 +477,7 @@ Wire the full active-mode data flow. The Chat Participant handler receives a pro
 
 ---
 
-## Milestone 12: No-Tests Fallback + Remaining Workflows
+## Milestone 12: No-Tests Fallback + Remaining Workflows — ✅ COMPLETE
 
 **What is built:** The "no-tests" fallback for bug fix and refactoring workflows, plus the documentation, dependency management, and onboarding workflows.
 
@@ -488,7 +495,7 @@ Wire the full active-mode data flow. The Chat Participant handler receives a pro
 
 ---
 
-## Milestone 13: Configuration Model + Polish
+## Milestone 13: Configuration Model + Polish — ✅ COMPLETE
 
 **What is built:** The configuration model (all settings in `.vscode/settings.json` under the `roadie` namespace), auto-commit option, test timeout configuration, model preference override, `roadie.testCommand` override. Plus: marketplace metadata, icon, README, changelog.
 
@@ -507,7 +514,7 @@ Wire the full active-mode data flow. The Chat Participant handler receives a pro
 
 ---
 
-## Milestone 14: Marketplace Publishing (Phase 1 Complete)
+## Milestone 14: Marketplace Publishing (Phase 1 Complete) — ⏭ SKIPPED (private tool, not yet published)
 
 **What is built:** First marketplace publish as Preview/Pre-release. Final testing, packaging, and submission.
 
@@ -527,7 +534,7 @@ Wire the full active-mode data flow. The Chat Participant handler receives a pro
 
 # Phase 1.5 Milestones — Passive Mode
 
-## Milestone 15: File Watcher + Incremental Model Updates
+## Milestone 15: File Watcher + Incremental Model Updates — ✅ COMPLETE
 
 **What is built:** VS Code `FileSystemWatcher` monitoring dependency files and config files. When watched files change, the project model updates incrementally.
 
@@ -547,7 +554,7 @@ Wire the full active-mode data flow. The Chat Participant handler receives a pro
 
 ---
 
-## Milestone 16: Automatic File Regeneration
+## Milestone 16: Automatic File Regeneration — ✅ COMPLETE
 
 **What is built:** When the project model changes, automatically regenerate affected `.github/` files. Respects section ownership markers.
 
@@ -566,7 +573,7 @@ Wire the full active-mode data flow. The Chat Participant handler receives a pro
 
 ---
 
-## Milestone 17: Pattern Detection (Phase 1.5 Deep Model)
+## Milestone 17: Pattern Detection (Phase 1.5 Deep Model) — ✅ COMPLETE
 
 **What is built:** Regex-based pattern detection for coding patterns, git conventions, and import ordering.
 
@@ -586,7 +593,7 @@ Wire the full active-mode data flow. The Chat Participant handler receives a pro
 
 ---
 
-## Milestone 18: Learning Database + Edit Tracking
+## Milestone 18: Learning Database + Edit Tracking — ✅ COMPLETE
 
 **What is built:** The learning database with file snapshot storage, workflow history recording, and edit tracking (opt-in). Pruning policy enforcement.
 
@@ -606,7 +613,7 @@ Wire the full active-mode data flow. The Chat Participant handler receives a pro
 
 ---
 
-## Milestone 19: Extended File Generation
+## Milestone 19: Extended File Generation — ✅ COMPLETE
 
 **What is built:** Full file generation catalog: per-language instructions, agent definitions, skill definitions, hooks, PR template, issue templates.
 
@@ -625,7 +632,7 @@ Wire the full active-mode data flow. The Chat Participant handler receives a pro
 
 ---
 
-## Milestone 20: Sidebar View + Status Dashboard
+## Milestone 20: Sidebar View + Status Dashboard — ⏭ DEFERRED (sidebar not implemented; status available via Output channel and status bar)
 
 **What is built:** Sidebar webview showing project model status, detected patterns, generated files, and workflow history.
 
@@ -644,7 +651,7 @@ Wire the full active-mode data flow. The Chat Participant handler receives a pro
 
 # Phase 2 Milestones — MCP Server
 
-## Milestone 21: MCP Server Scaffold
+## Milestone 21: MCP Server Scaffold — ⏳ NOT YET STARTED (Phase 2)
 
 **What is built:** MCP server skeleton using `@modelcontextprotocol/sdk`, stdio-based transport, spawned by the extension.
 
@@ -661,7 +668,7 @@ Wire the full active-mode data flow. The Chat Participant handler receives a pro
 
 ---
 
-## Milestone 22: MCP Tools — Project Info + Context
+## Milestone 22: MCP Tools — Project Info + Context — ⏳ NOT YET STARTED (Phase 2)
 
 **What is built:** MCP tools wrapping `ProjectAnalyzer.analyze()` and `ProjectModel.toContext()`. External tools can query Roadie's project model.
 
@@ -678,7 +685,7 @@ Wire the full active-mode data flow. The Chat Participant handler receives a pro
 
 ---
 
-## Milestone 23: MCP Tools — Workflow Execution + File Generation
+## Milestone 23: MCP Tools — Workflow Execution + File Generation — ⏳ NOT YET STARTED (Phase 2)
 
 **What is built:** MCP tools wrapping `WorkflowEngine.execute()` and `FileGenerator.generate()`. External tools can trigger Roadie workflows and file generation.
 
@@ -735,7 +742,7 @@ The following table shows the build order derived from the dependency graph.
 | 31 | `pattern-detector.ts` | M17 | types, project-model |
 | 32 | `learning-database.ts` | M18 | types, database |
 | 33 | All remaining templates | M19 | file-generator, project-model |
-| 34 | `sidebar-provider.ts` | M20 | project-model, learning-database |
+| 34 | `sidebar-provider.ts` | M20 | project-model, learning-database | *(deferred — not yet implemented)* |
 | 35 | `mcp-server.ts` | M21 | extension |
 | 36 | MCP tools | M22–23 | mcp-server, all core interfaces |
 

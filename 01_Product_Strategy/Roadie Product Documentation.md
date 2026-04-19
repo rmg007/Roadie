@@ -2,18 +2,21 @@
 
 **The Invisible AI Workflow Engine for VS Code**
 
+**⚠️ START HERE:** [Current State (v1.0.0)](../00_CURRENT_STATE.md) — What's shipped, what's not, testing status.
+
 This workspace contains all foundation documents for the Roadie project. Documents are the single source of truth — all chat agents reference these pages.
 
 ---
 
 ## Documents
 
-### Foundation Documents (Source of Truth)
+### Quick Reference
 
 | Document | Status | Description |
 | --- | --- | --- |
-| Product Design Document (PDD) | v1.0 ✅ | What we're building and why |
-| Technical Architecture Document (TAD) | v1.0 ✅ | How it works technically |
+| **Current State (v1.0.0)** | ✅ | **Read this first** — What's implemented, what's deferred, known limitations |
+| Product Design Document (PDD) | v1.0 ✅ | Product vision and user narrative (architecture-level, not implementation detail) |
+| Technical Architecture Document (TAD) | v1.0 ✅ | System design, module contracts, APIs |
 | Development Roadmap | v1.0 ✅ | Build sequence and milestones |
 | Key Decisions & Rationale Log | v1.0 ✅ | Why each major decision was made |
 

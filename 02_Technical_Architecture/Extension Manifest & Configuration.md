@@ -107,9 +107,9 @@
           ],
           "default": "balanced",
           "enumDescriptions": [
-            "Use Tier 0 only (cheapest, lower quality)",
-            "Tier 0 → escalate to Tier 1 on failure (default)",
-            "Start at Tier 1 (most expensive, highest quality)"
+            "Use free tier only (cheapest, lower quality)",
+            "Free tier → escalate to standard on failure (default)",
+            "Start at standard tier (most expensive, highest quality)"
           ],
           "description": "Model tier preference for workflows. Does not affect escalation logic."
         },
@@ -224,9 +224,9 @@
 
 **Values:**
 
-- `"economy"` — Use Tier 0 (free) only. No escalation. Cheapest, lower quality.
-- `"balanced"` — Default. Tier 0 → Tier 1 on failure. Good cost/quality balance.
-- `"quality"` — Start workflows at Tier 1. Most expensive, highest quality.
+- `"economy"` — Use free tier only. No escalation. Cheapest, lower quality.
+- `"balanced"` — Default. Free tier → standard on failure. Good cost/quality balance.
+- `"quality"` — Start workflows at standard tier. Most expensive, highest quality.
 
 **Effect:** Changes starting tier assignment. Escalation logic still applies.
 
@@ -238,7 +238,7 @@
 }
 ```
 
-All workflows start at Tier 1 instead of Tier 0.
+All workflows start at standard tier instead of free tier.
 
 ---
 

@@ -3,7 +3,17 @@
 **This is the canonical entry point for any agent or human onboarding to the Roadie specification corpus.**  
 **Last verified Mission-Ready:** 2026-04-11 (see `ZERO_GUESSWORK_AUDIT.md`)
 
-Roadie is a VS Code extension + standalone MCP server that acts as an "invisible AI workflow engine". This repository contains only documentation — no source code. A high-autonomy coding agent (Cursor / Windsurf / Antigravity / Claude Code) should be able to read this corpus from cold and produce the full Phase 1 implementation with **zero clarification questions**.
+> ## ✅ Implementation Status — Updated 2026-04-17
+>
+> **Phase 1 (Active Mode): COMPLETE** — All 13 modules implemented and tested.  
+> **Phase 1.5 (Passive Mode): COMPLETE** — All 7 modules implemented (M15, M16, M19, M21, M22, M23, M24).  
+> **v1.0.0 released (2026-04-17)** — IDE detection (`detector` module) and public API surface (`api` module) added. 688+ tests passing.  
+> **Phase 2 (MCP Server): NOT YET BUILT** — Fully specified. Deferred to v1.1+.  
+>
+> The implementation lives at `../roadie-App/` (sibling repo). Do **not** start a new implementation from this corpus — the code already exists and is in stable v1.0.0 release.  
+> Agents working on this codebase should focus on **bug fixes, test improvements, and Phase 2 preparation**, not re-implementing Phase 1/1.5.
+
+Roadie is a VS Code extension + standalone MCP server that acts as an "invisible AI workflow engine". This repository contains only documentation — no source code. The implementation repo is `../roadie/`.
 
 ---
 
@@ -20,15 +30,18 @@ See `07_Patterns_and_Standards/Installation & Quick Start Guide.md` for the full
 
 ## ⚡ Agent Quick Start
 
-If you are an autonomous coding agent, do exactly this:
+> **Phase 1 and Phase 1.5 are already implemented.** If you are fixing a bug or adding a test, start by reading the relevant spec file and the corresponding source file in `../roadie/src/`. Do not re-implement modules that already exist.
+
+If you are working on **Phase 2** or exploring the codebase from scratch:
 
 1. Read **this file** (you're here).
-2. Read `07_Patterns_and_Standards/Shared TypeScript Interfaces.md` (canonical type contracts).
-3. Read `07_Patterns_and_Standards/Shared Zod Schemas.md` (runtime validation — paired 1:1 with the interfaces).
-4. Read `03_Implementation_Specs_Phase_1/Module Build Order & Verification.md` (the ordered 13-step build plan — **execute Build Prompts literally**).
-5. Follow the 13 Build Prompts in order. Each step references any additional spec file it depends on by **local path**.
+2. Read `07_Patterns_and_Standards/Shared TypeScript Interfaces.md` (canonical type contracts — matches `../roadie/src/types.ts`).
+3. Read `07_Patterns_and_Standards/Shared Zod Schemas.md` (runtime validation schemas — matches `../roadie/src/schemas.ts`).
+4. Read `05_Implementation_Specs_Phase_2/Phase 2 Implementation Specification Master In.md` for Phase 2 work.
 
-That's it. Everything you need for Phase 1 implementation is inside this repository. Do **not** fetch any external URL, Notion page, or web resource. Do **not** guess at type fields, regex weights, error codes, or merge strategies — every one of those values is literal inline somewhere in this corpus.
+For historical reference on what was built and how: `03_Implementation_Specs_Phase_1/Module Build Order & Verification.md` documents the original 13-step build plan that produced the current implementation.
+
+Do **not** fetch any external URL, Notion page, or web resource. Do **not** guess at type fields, regex weights, error codes, or merge strategies — every one of those values is literal inline somewhere in this corpus.
 
 ---
 
@@ -140,4 +153,6 @@ Before handing this corpus to an autonomous agent, confirm:
 - [x] `07_Patterns_and_Standards/UI UX Specification.md` covers all 7 workflows' HITL buttons, notification copy, sidebar decision, and accessibility contract
 - [x] Project root `package.json` matches `Extension Manifest & Configuration.md` versions exactly
 
-When every box is checked, the corpus is Mission-Ready. Begin Phase 1 implementation at Step 1 of `03_Implementation_Specs_Phase_1/Module Build Order & Verification.md`.
+When every box is checked, the corpus is Mission-Ready.
+
+> **2026-04-17:** v1.0.0 released. Phase 1 and Phase 1.5 are implemented and stable. IDE detection and public API surface added. The above checklist describes the pre-build readiness state — all boxes remain checked. Begin Phase 2 implementation at `05_Implementation_Specs_Phase_2/Phase 2 Implementation Specification Master In.md`.

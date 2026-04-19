@@ -59,6 +59,14 @@ For **Phase 2** work, the specification is at:
 *Status: Deferred.*
 - We intentionally defer creating the `Error Glossary` until **after** Build Order Step 4 (Model Resolver) is fully implemented. We will log actual build/runtime errors and form a true mapping of causes and fixes, preventing fictional hallucinated solutions.
 
-### CI/CD and Security Tooling
+## 🧠 Self-Evolving Knowledge System
+
+Roadie now features an autonomous knowledge acquisition loop:
+1. **Regional Registry**: Access to 800+ pre-verified expert agent skills.
+2. **Surgical Discovery (Firecrawl)**: When a technology is missing, Roadie uses high-fidelity live scraping to extract official documentation in real-time.
+3. **Permanent Evolution**: These discovered laws are automatically "Committed" to our regional registry, making Roadie smarter for every future session.
+
+## 🛠️ Tooling & Capability Matrix
+### CI/CD and Security
 *Status: Final Step.*
 - Implementation of GitHub Actions, dependency-cruiser, and ESLint security hooks are deferred until the feature work wraps. See [Security and Migration Specification](file:///c:/dev/Roadie/Roadie_Project_Documentations_Only/07_Patterns_and_Standards/Security%20and%20Migration%20Specification.md) for strict rules.
